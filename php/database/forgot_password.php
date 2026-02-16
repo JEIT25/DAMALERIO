@@ -1,0 +1,217 @@
+<?php
+/**
+ * Forgot password with OTP (AMORA-style).
+ * Actions: verify_user_id, send_otp, verify_otp, get_security_question, verify_security_question, change_password.
+ */
+session_start();
+require_once __DIR__ . '/db_connect.php';
+header('Content-Type: application/json');
+
+$action = $_POST['action'] ?? '';
+
+// Step 1: Verify User ID
+if ($action === 'verify_user_id') {
+    $userId = trim($_POST['user_id'] ?? '');
+    if (empty($userId)) {
+        echo json_encode(['status' => 'error', 'message' => 'User ID is required.']);
+        exit;
+    }
+    $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE id = ?");
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $user = $result->fetch_assoc();
+        $_SESSION['forgot_password_user_id'] = $user['id'];
+        $_SESSION['forgot_password_username'] = $user['username'];
+        $_SESSION['forgot_password_email'] = $user['email'];
+        echo json_encode(['status' => 'success', 'user_id' => $user['id'], 'username' => $user['username'], 'email' => $user['email']]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'User ID not found.']);
+    }
+    $stmt->close();
+    exit;
+}
+
+// Step 2: Send OTP (with resend cooldown 60s, expiry 15 min)
+if ($action === 'send_otp') {
+    if (!isset($_SESSION['forgot_password_user_id'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Please verify your User ID first.']);
+        exit;
+    }
+    $userId = $_SESSION['forgot_password_user_id'];
+
+    $checkSql = "SELECT id, otp_code, expires_at FROM password_reset_otp WHERE user_id = ? AND used = 0 ORDER BY created_at DESC LIMIT 1";
+    $checkStmt = $conn->prepare($checkSql);
+    $checkStmt->bind_param('s', $userId);
+    $checkStmt->execute();
+    $checkResult = $checkStmt->get_result();
+    if ($checkResult->num_rows > 0) {
+        $otpRecord = $checkResult->fetch_assoc();
+        $expiresAt = strtotime($otpRecord['expires_at']);
+        if ($expiresAt > time()) {
+            $createdTime = $expiresAt - (15 * 60);
+            $resendAvailableIn = max(0, min(60, 60 - (time() - $createdTime)));
+            if ($resendAvailableIn > 0) {
+                $checkStmt->close();
+                echo json_encode([
+                    'status' => 'existing_otp',
+                    'message' => 'You already have a valid OTP. Check your email.',
+                    'remaining_seconds' => $resendAvailableIn,
+                    'email' => $_SESSION['forgot_password_email'] ?? ''
+                ]);
+                exit;
+            }
+        }
+    }
+    $checkStmt->close();
+
+    $del = $conn->prepare("DELETE FROM password_reset_otp WHERE user_id = ? AND used = 0");
+    $del->bind_param('s', $userId);
+    $del->execute();
+    $del->close();
+    $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60));
+    $ins = $conn->prepare("INSERT INTO password_reset_otp (user_id, otp_code, expires_at) VALUES (?, ?, ?)");
+    $ins->bind_param('sss', $userId, $otp, $expiresAt);
+    if (!$ins->execute()) {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to generate OTP.']);
+        exit;
+    }
+    $ins->close();
+
+    $email = $_SESSION['forgot_password_email'];
+    $subject = 'FoodGrab - Password Reset Code';
+    $body = "Your password reset code is: $otp\n\nThis code expires in 15 minutes. Do not share it.";
+    $headers = 'From: noreply@foodgrab.local' . "\r\n" . 'Content-Type: text/plain; charset=UTF-8';
+    $sent = @mail($email, $subject, $body, $headers);
+
+    echo json_encode([
+        'status' => $sent ? 'success' : 'error',
+        'message' => $sent ? 'OTP sent to your email.' : 'Email could not be sent. Check server mail config or use another method.',
+        'email' => $email,
+        'remaining_seconds' => 60
+    ]);
+    exit;
+}
+
+// Step 3: Verify OTP
+if ($action === 'verify_otp') {
+    if (!isset($_SESSION['forgot_password_user_id'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Session expired. Start over.']);
+        exit;
+    }
+    $userId = $_SESSION['forgot_password_user_id'];
+    $userOtp = trim($_POST['otp'] ?? '');
+    if (strlen($userOtp) !== 6 || !ctype_digit($userOtp)) {
+        echo json_encode(['status' => 'error', 'message' => 'OTP must be 6 digits.']);
+        exit;
+    }
+    $stmt = $conn->prepare("SELECT id, expires_at FROM password_reset_otp WHERE user_id = ? AND otp_code = ? AND used = 0 ORDER BY created_at DESC LIMIT 1");
+    $stmt->bind_param('ss', $userId, $userOtp);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        if (strtotime($row['expires_at']) > time()) {
+            $conn->query("UPDATE password_reset_otp SET used = 1 WHERE id = " . (int)$row['id']);
+            $_SESSION['forgot_password_otp_verified'] = true;
+            echo json_encode(['status' => 'success', 'message' => 'OTP verified.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'OTP expired. Request a new one.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Invalid OTP.']);
+    }
+    $stmt->close();
+    exit;
+}
+
+// Get security question (single; DAMALERIO has one question)
+if ($action === 'get_security_question') {
+    if (!isset($_SESSION['forgot_password_user_id']) || !isset($_SESSION['forgot_password_otp_verified'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Complete previous steps first.']);
+        exit;
+    }
+    $userId = $_SESSION['forgot_password_user_id'];
+    $stmt = $conn->prepare("SELECT secure_question FROM users WHERE id = ?");
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        echo json_encode(['status' => 'success', 'question' => $row['secure_question']]);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'User not found.']);
+    }
+    $stmt->close();
+    exit;
+}
+
+// Verify security answer and allow password change
+if ($action === 'verify_security_question') {
+    if (!isset($_SESSION['forgot_password_user_id']) || !isset($_SESSION['forgot_password_otp_verified'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Complete previous steps first.']);
+        exit;
+    }
+    $userId = $_SESSION['forgot_password_user_id'];
+    $answer = trim($_POST['answer'] ?? '');
+    if (empty($answer)) {
+        echo json_encode(['status' => 'error', 'message' => 'Answer is required.']);
+        exit;
+    }
+    $stmt = $conn->prepare("SELECT secure_answer FROM users WHERE id = ?");
+    $stmt->bind_param('s', $userId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    if ($result->num_rows > 0) {
+        $row = $result->fetch_assoc();
+        if (password_verify($answer, $row['secure_answer'])) {
+            $_SESSION['forgot_password_security_verified'] = true;
+            echo json_encode(['status' => 'success', 'message' => 'Answer correct. Set new password.']);
+        } else {
+            echo json_encode(['status' => 'error', 'message' => 'Incorrect answer.']);
+        }
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'User not found.']);
+    }
+    $stmt->close();
+    exit;
+}
+
+// Change password
+if ($action === 'change_password') {
+    if (!isset($_SESSION['forgot_password_user_id']) || !isset($_SESSION['forgot_password_otp_verified']) || !isset($_SESSION['forgot_password_security_verified'])) {
+        echo json_encode(['status' => 'error', 'message' => 'Complete all steps first.']);
+        exit;
+    }
+    $userId = $_SESSION['forgot_password_user_id'];
+    $newPassword = $_POST['new_password'] ?? '';
+    $confirmPassword = $_POST['confirm_password'] ?? '';
+    if (empty($newPassword) || $newPassword !== $confirmPassword) {
+        echo json_encode(['status' => 'error', 'message' => 'Passwords do not match or are empty.']);
+        exit;
+    }
+    if (strlen($newPassword) < 8 || strlen($newPassword) > 25) {
+        echo json_encode(['status' => 'error', 'message' => 'Password must be 8–25 characters.']);
+        exit;
+    }
+    $hash = password_hash($newPassword, PASSWORD_DEFAULT);
+    $stmt = $conn->prepare("UPDATE users SET password = ? WHERE id = ?");
+    $stmt->bind_param('ss', $hash, $userId);
+    if ($stmt->execute()) {
+        $del2 = $conn->prepare("DELETE FROM password_reset_otp WHERE user_id = ?");
+        $del2->bind_param('s', $userId);
+        $del2->execute();
+        $del2->close();
+        unset($_SESSION['forgot_password_user_id'], $_SESSION['forgot_password_username'], $_SESSION['forgot_password_email'], $_SESSION['forgot_password_otp_verified'], $_SESSION['forgot_password_security_verified']);
+        echo json_encode(['status' => 'success', 'message' => 'Password changed. You can login now.']);
+    } else {
+        echo json_encode(['status' => 'error', 'message' => 'Failed to update password.']);
+    }
+    $stmt->close();
+    exit;
+}
+
+echo json_encode(['status' => 'error', 'message' => 'Invalid action.']);
+$conn->close();

@@ -1,0 +1,382 @@
+/* Builds on design-system.css – login page */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: var(--font-body, 'Nunito'), sans-serif;
+    background: linear-gradient(160deg, var(--bg-body) 0%, rgba(255, 82, 82, 0.04) 100%);
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    font-size: var(--text-base, 16px);
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--bg-card);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-md);
+    position: fixed;
+    top: 0;
+    width: 100%;
+    z-index: 100;
+}
+
+.navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.logo {
+    width: 40px;
+    height: 40px;
+}
+
+.navbar-text {
+    font-family: 'Poppins', sans-serif;
+    font-weight: 700;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+    line-height: 1.2;
+    display: flex;
+    flex-direction: column;
+}
+
+.navbar-subtext {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 400;
+}
+
+.navbar-right {
+    display: flex;
+    gap: 1rem;
+}
+
+.nav-link {
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.6rem 1.2rem;
+    border-radius: var(--radius-full);
+    transition: all 0.2s ease;
+    font-family: 'Poppins', sans-serif;
+    color: var(--text-main);
+}
+
+.nav-link:hover {
+    color: var(--primary-color);
+    background-color: rgba(255, 87, 34, 0.1);
+}
+
+#register {
+    /* Styles removed to inherit from .nav-link */
+}
+
+#register:hover {
+    /* Styles removed to inherit from .nav-link */
+}
+
+/* Main Content - Centered Card (user-centered layout) */
+main {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 100px 24px 48px;
+}
+
+.login-form {
+    background: var(--bg-card);
+    border-radius: var(--radius-xl, 1.25rem);
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 440px;
+    padding: var(--space-10, 2.5rem);
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+
+.left-side {
+    display: none;
+}
+
+.right-side {
+    width: 100%;
+    padding: 0;
+}
+
+.login-form h2 {
+    font-family: var(--font-heading, 'Poppins'), sans-serif;
+    font-size: var(--text-2xl, 1.5rem);
+    color: var(--text-main);
+    margin-bottom: var(--space-8, 2rem);
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: var(--space-5, 1.25rem);
+}
+
+label {
+    display: block;
+    margin-bottom: var(--space-2, 0.5rem);
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: var(--text-sm, 0.875rem);
+}
+
+input[type="text"],
+input[type="password"] {
+    width: 100%;
+    padding: var(--space-3, 0.75rem) var(--space-4, 1rem);
+    border: 2px solid var(--border-light, #e2e8f0);
+    border-radius: var(--radius-md, 0.75rem);
+    font-family: var(--font-body, 'Nunito'), sans-serif;
+    font-size: var(--text-base, 1rem);
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+input[type="text"]:focus,
+input[type="password"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px var(--primary-light, rgba(255,82,82,0.1));
+}
+
+.password-container {
+    position: relative;
+}
+
+.eye-icon {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: color 0.2s;
+}
+
+.eye-icon:hover {
+    color: var(--primary-color);
+}
+
+.userValidationMess {
+    color: #EF4444 !important;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+    display: none;
+    min-height: 1.2em;
+    font-weight: 600;
+}
+
+.submitBtn {
+    width: 100%;
+    margin-top: var(--space-4, 1rem);
+}
+.submitBtn:focus-visible {
+    outline: 2px solid var(--primary-color);
+    outline-offset: 2px;
+}
+
+.forgot-pw {
+    display: block;
+    text-align: center;
+    margin-top: 1.5rem;
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.forgot-pw:hover {
+    text-decoration: underline;
+}
+
+/* Modals */
+.modal2, .modal-simple-alert, #validationModal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(4px);
+    justify-content: center;
+    align-items: center;
+}
+
+#userNotFoundModal {
+    z-index: 1002;
+}
+
+#validationModal {
+    justify-content: center;
+    align-items: center;
+}
+
+#validationModal.active {
+    display: flex !important;
+}
+
+.modal-content, .modal2-content, .modal-simple-alert-content {
+    background-color: var(--bg-card);
+    padding: 2.5rem;
+    border-radius: 20px;
+    width: 90%;
+    max-width: 450px;
+    text-align: center;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    animation: popIn 0.3s ease-out;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+#validationModal .text {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-top: 1rem;
+}
+
+#timer {
+    font-size: 1rem;
+    color: var(--text-muted);
+    margin-top: 0.5rem;
+    font-weight: 400;
+}
+
+#countdown {
+    font-weight: 700;
+    color: var(--primary-color);
+}
+
+.close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    cursor: pointer;
+    color: var(--text-muted);
+}
+
+.close:hover {
+    color: var(--error-color);
+}
+
+/* Footer - Restored & Centered */
+footer {
+    background-color: var(--text-main);
+    color: white;
+    padding: 4rem 2rem 2rem;
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+}
+
+.footer-upper {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 2rem;
+    max-width: 800px;
+    margin: 0 auto 3rem;
+    justify-items: center;
+}
+
+.footer-left .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.footer-left h3 {
+    font-family: 'Poppins', sans-serif;
+    font-size: 1.5rem;
+    color: var(--primary-color);
+}
+
+.footer-left .sub-text {
+    color: var(--secondary-color);
+    font-size: 0.9rem;
+}
+
+.footer-left .description {
+    color: #9CA3AF;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.footer-center, .footer-right {
+    display: none;
+}
+
+.footer-bottom {
+    text-align: center;
+    border-top: 1px solid #374151;
+    padding-top: 2rem;
+    color: #9CA3AF;
+    font-size: 0.9rem;
+    width: 100%;
+    max-width: 800px;
+}
+
+/* Forgot password OTP steps */
+.forgot-step-title {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    margin-bottom: 1rem;
+}
+.forgot-step { margin-bottom: 1rem; }
+.forgot-step label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+.forgot-step input[type="text"],
+.forgot-step input[type="password"] {
+    width: 100%;
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+}
+.forgot-msg { display: block; margin-top: 0.5rem; font-size: 0.9rem; }
+.forgot-email-hint { margin-bottom: 0.75rem; color: var(--text-muted); font-size: 0.9rem; }
+.forgot-email-sent { margin-bottom: 0.5rem; font-size: 0.9rem; color: var(--primary-color); }
+.forgot-resend-hint { display: block; font-size: 0.85rem; color: var(--text-muted); margin-top: 0.25rem; }
+.modal2-content .btn-secondary {
+    background: var(--bg-body);
+    border: 1px solid var(--border-color);
+    color: var(--text-main);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-md);
+    margin-right: 0.5rem;
+    margin-top: 0.5rem;
+    cursor: pointer;
+}
+.modal2-content .btn-secondary:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* Responsive */
+@media (max-width: 600px) {
+    .login-form {
+        padding: 2rem;
+    }
+}
