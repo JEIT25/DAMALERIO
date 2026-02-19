@@ -45,7 +45,8 @@ $baseUrl = getBaseUrl();
     </nav>
 
     <main>
-        <div id="validationModal" <?php if ($lockoutActive): ?>data-lockout-active="true" data-lockout-time="<?php echo $lockoutTime; ?>" data-failed-attempts="<?php echo $failedAttempts; ?>"<?php endif; ?>>
+        <div id="validationModal" <?php if ($lockoutActive): ?>data-lockout-active="true" data-lockout-time="<?php echo $lockoutTime; ?>" data-failed-attempts="<?php echo $failedAttempts; ?>"<?php
+endif; ?>>
             <div class="modal-content">
                 <svg class="error-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="#e66868" width="2em" height="2em">
                     <path d="M256 512C397.4 512 512 397.4 512 256C512 114.6 397.4 0 256 0C114.6 0 0 114.6 0 256C0 397.4 114.6 512 256 512zM232 128C232 119.2 239.2 112 248 112H264C272.8 112 280 119.2 280 128V288C280 296.8 272.8 304 264 304H248C239.2 304 232 296.8 232 288V128zM256 384C238.3 384 224 369.7 224 352C224 334.3 238.3 320 256 320C273.7 320 288 334.3 288 352C288 369.7 273.7 384 256 384z"/>
@@ -89,7 +90,8 @@ $baseUrl = getBaseUrl();
                                 <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
                             </svg>
                         </div>
-                        <span id="validationMessPw" class="userValidationMess" style="<?php echo $login_error ? 'display: block;' : ''; ?>"><?php if ($login_error) echo htmlspecialchars($login_error); ?></span>
+                        <span id="validationMessPw" class="userValidationMess" style="<?php echo $login_error ? 'display: block;' : ''; ?>"><?php if ($login_error)
+    echo htmlspecialchars($login_error); ?></span>
                     </div>
                 </div>
                 <button type="submit" class="submitBtn">Login</button>
@@ -111,7 +113,12 @@ $baseUrl = getBaseUrl();
                 <button type="button" id="forgotStep1Btn" class="submitBtn">Verify & Continue</button>
             </div>
             <div id="forgotStep2" class="forgot-step" style="display: none;">
-                <p class="forgot-email-hint">We will send a 6-digit code to the email linked to your account.</p>
+                <div class="user-details-box" style="background: rgba(255, 200, 87, 0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9em; text-align: left;">
+                    <p style="margin: 4px 0;"><strong>ID:</strong> <span id="step2_display_id"></span></p>
+                    <p style="margin: 4px 0;"><strong>Name:</strong> <span id="step2_display_name"></span></p>
+                    <p style="margin: 4px 0;"><strong>Email:</strong> <span id="step2_display_email"></span></p>
+                </div>
+                <p class="forgot-email-hint">We will send a 6-digit code to the email above.</p>
                 <button type="button" id="forgotSendOtpBtn" class="submitBtn">Send OTP</button>
                 <span id="forgotOtpSentTo" class="forgot-email-sent" style="display: none;"></span>
                 <div id="forgotOtpInputWrap" style="display: none;">
@@ -127,16 +134,43 @@ $baseUrl = getBaseUrl();
                 <div class="user-details-box" style="background: rgba(255, 200, 87, 0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
                     <p style="margin: 0;"><strong>User ID:</strong> <span id="display_id"></span> &nbsp; <strong>Username:</strong> <span id="display_username"></span></p>
                 </div>
-                <label id="secure_question_label" style="display:block; margin-bottom:8px; font-weight:600;"></label>
-                <input type="text" id="secure_answer" name="secure_answer" placeholder="Your answer">
+                <div class="form-group" style="text-align: left;">
+                    <label id="secure_question_label1" for="secure_answer1" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <input type="text" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
+                </div>
+
+                <div class="form-group" style="text-align: left;">
+                    <label id="secure_question_label2" for="secure_answer2" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <input type="text" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
+                </div>
+
+                <div class="form-group" style="text-align: left;">
+                    <label id="secure_question_label3" for="secure_answer3" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <input type="text" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
+                </div>
+
                 <span id="forgotStep3Msg" class="forgot-msg"></span>
                 <button type="button" id="forgotStep3Btn" class="submitBtn">Verify & Set New Password</button>
             </div>
             <div id="forgotStep4" class="forgot-step" style="display: none;">
                 <label for="forgot_new_password">New password (8–25 characters):</label>
-                <input type="password" id="forgot_new_password" minlength="8" maxlength="25" placeholder="New password">
+                <div class="password-container">
+                    <input type="password" id="forgot_new_password" minlength="8" maxlength="25" placeholder="New password" autocomplete="new-password">
+                    <svg id="toggleForgotNewPassword" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </div>
+                <span id="forgotPwStrength" class="validation-message" style="display:block; margin-bottom:10px; font-size:0.85em;"></span>
+
                 <label for="forgot_confirm_password">Confirm password:</label>
-                <input type="password" id="forgot_confirm_password" minlength="8" maxlength="25" placeholder="Confirm">
+                <div class="password-container">
+                    <input type="password" id="forgot_confirm_password" minlength="8" maxlength="25" placeholder="Confirm" autocomplete="new-password">
+                    <svg id="toggleForgotConfirmPassword" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+                    </svg>
+                </div>
+                <span id="forgotPwMatch" class="validation-message" style="display:block; margin-bottom:10px; font-size:0.85em;"></span>
+
                 <span id="forgotStep4Msg" class="forgot-msg"></span>
                 <button type="button" id="forgotStep4Btn" class="submitBtn">Change Password</button>
             </div>
@@ -165,6 +199,6 @@ $baseUrl = getBaseUrl();
         window.CHECK_ID_API = '<?php echo $baseUrl; ?>/php/database/check_id.php';
         window.FORGOT_PASSWORD_API = '<?php echo $baseUrl; ?>/php/database/forgot_password.php';
     </script>
-    <script src="../../js/serve_asset.php?file=login.js"></script>
+    <script src="../../js/serve_asset.php?file=login.js&v=<?php echo time(); ?>"></script>
 </body>
 </html>

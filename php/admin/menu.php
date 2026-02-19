@@ -16,34 +16,17 @@ $base = getBaseUrl();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Menu Items - Admin</title>
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=design-system.css">
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=dashboard.css">
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=order_food.css">
+    <link rel="stylesheet" href="../../css/design-system.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/order_food.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <?php include __DIR__ . '/../includes/layout/navbar.php'; ?>
     <div class="dashboard-container">
-        <header class="dashboard-header">
-            <div class="navbar-left">
-                <a href="index.php" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;">
-                    <img src="../../images/logo4.png" alt="Logo" class="logo">
-                    <span class="navbar-text">FoodGrab <span class="navbar-subtext">Admin</span></span>
-                </a>
-            </div>
-            <div class="navbar-right">
-                <form action="" method="POST">
-                    <input type="hidden" name="logout_action" value="1">
-                    <button type="submit" class="nav-link">Log Out</button>
-                </form>
-            </div>
-        </header>
-        <aside class="dashboard-sidebar">
-            <nav class="sidebar-menu">
-                <a href="index.php">Dashboard</a>
-                <a href="orders.php">Manage Orders</a>
-                <a href="restaurants.php">Restaurants</a>
-                <a href="menu.php" class="active">Menu Items</a>
-            </nav>
-        </aside>
+        <!-- Sidebar -->
+        <?php $currentPage = 'admin_menu';
+include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         <main class="dashboard-main">
             <h1>Menu Items</h1>
             <div class="form-group">
@@ -84,11 +67,15 @@ $base = getBaseUrl();
                 </div>
             </div>
         </main>
-        <footer class="dashboard-footer"><div class="footer-bottom"><p>&copy; 2025</p></div></footer>
+        <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
     </div>
     <script>
         const api = '<?php echo $base; ?>' + '/php/database';
+        const api = '<?php echo $base; ?>' + '/php/database';
         let restaurants = [];
+        let currentPage = 1;
+
+        // Load restaurants for dropdowns
         fetch(api + '/admin_restaurants.php', { credentials: 'same-origin' })
             .then(r => r.json())
             .then(data => {
@@ -98,58 +85,92 @@ $base = getBaseUrl();
                     restaurants.forEach(r => { sel.innerHTML += `<option value="${r.id}">${escapeHtml(r.name)}</option>`; });
                     const sel2 = document.getElementById('menu_restaurant_id');
                     restaurants.forEach(r => { sel2.innerHTML += `<option value="${r.id}">${escapeHtml(r.name)}</option>`; });
-                    document.getElementById('restFilter').onchange = loadMenu;
+
+                    document.getElementById('restFilter').onchange = () => loadMenu(1);
                     loadMenu();
                 }
             });
-        function loadMenu() {
+
+        function loadMenu(page = 1) {
+            currentPage = page;
             const rid = document.getElementById('restFilter').value;
-            const url = rid ? api + '/admin_menu.php?restaurant_id=' + rid : api + '/admin_menu.php';
+            let url = api + '/admin_menu.php?page=' + page;
+            if (rid) url += '&restaurant_id=' + rid;
+
             fetch(url, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
-                    if (!data.success || !data.menu.length) {
-                        document.getElementById('menuList').innerHTML = '<p class="muted">No menu items.</p>';
+                    if (!data.success) return;
+
+                    const totalPages = data.pagination?.total_pages || 1;
+
+                    if (!data.menu.length) {
+                        document.getElementById('menuList').innerHTML = '<div class="empty-state"><p>No menu items found.</p></div>';
                         return;
                     }
-                    const getRestName = (id) => (restaurants.find(r => r.id == id) || {}).name || '';
-                    let html = '<table class="orders-table"><thead><tr><th>Name</th><th>Restaurant</th><th>Price</th><th>Available</th><th></th></tr></thead><tbody>';
+
+                    const getRestName = (id) => (restaurants.find(r => r.id == id) || {}).name || 'Unknown';
+
+                    let html = '<table class="orders-table"><thead><tr><th>Name</th><th>Restaurant</th><th>Price</th><th>Available</th><th>Actions</th></tr></thead><tbody>';
                     data.menu.forEach(m => {
-                        html += `<tr><td>${escapeHtml(m.name)}</td><td>${escapeHtml(getRestName(m.restaurant_id))}</td><td>₱${parseFloat(m.price).toFixed(2)}</td><td>${m.is_available ? 'Yes' : 'No'}</td><td><button type="button" class="edit-menu" data-id="${m.id}" data-rid="${m.restaurant_id}" data-name="${escapeAttr(m.name)}" data-desc="${escapeAttr(m.description)}" data-price="${m.price}" data-avail="${m.is_available}">Edit</button> <button type="button" class="delete-menu" data-id="${m.id}">Delete</button></td></tr>`;
+                        const availBtn = m.is_available == 1
+                            ? `<button class="btn-secondary" style="color:var(--success-color); border-color:var(--success-color);" onclick="toggleAvail(${m.id}, 0)">Yes</button>`
+                            : `<button class="btn-secondary" style="opacity:0.6;" onclick="toggleAvail(${m.id}, 1)">No</button>`;
+
+                        html += `<tr>
+                            <td style="font-weight:600">${escapeHtml(m.name)}</td>
+                            <td>${escapeHtml(getRestName(m.restaurant_id))}</td>
+                            <td>₱${parseFloat(m.price).toFixed(2)}</td>
+                            <td>${availBtn}</td>
+                            <td>
+                                <button type="button" class="btn-primary" style="padding:0.25rem 0.75rem; font-size:0.85rem;"
+                                    onclick='openEditModal(${JSON.stringify(m)})'>
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>`;
                     });
                     html += '</tbody></table>';
+
+                     html += `<div class="pagination-controls" style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+                        <button class="btn-secondary" onclick="loadMenu(currentPage-1)" ${currentPage<=1?'disabled':''}>Previous</button>
+                        <span style="align-self:center;">Page ${currentPage} of ${totalPages}</span>
+                        <button class="btn-secondary" onclick="loadMenu(currentPage+1)" ${currentPage>=totalPages?'disabled':''}>Next</button>
+                    </div>`;
+
                     document.getElementById('menuList').innerHTML = html;
-                    document.querySelectorAll('.edit-menu').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            document.getElementById('menuModalTitle').textContent = 'Edit Menu Item';
-                            document.getElementById('menu_id').value = btn.dataset.id;
-                            document.getElementById('menu_restaurant_id').value = btn.dataset.rid;
-                            document.getElementById('menu_name').value = btn.dataset.name || '';
-                            document.getElementById('menu_desc').value = btn.dataset.desc || '';
-                            document.getElementById('menu_price').value = btn.dataset.price || '';
-                            document.getElementById('menu_available').checked = btn.dataset.avail == 1;
-                            document.getElementById('menuModal').style.display = 'flex';
-                        });
-                    });
-                    document.querySelectorAll('.delete-menu').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            if (!confirm('Delete this item?')) return;
-                            const fd = new FormData(); fd.append('action', 'delete'); fd.append('id', btn.dataset.id);
-                            fetch(api + '/admin_menu.php', { method: 'POST', body: fd, credentials: 'same-origin' })
-                                .then(r => r.json())
-                                .then(d => { if (d.success) loadMenu(); });
-                        });
-                    });
                 });
         }
+
+        function toggleAvail(id, status) {
+            const fd = new FormData();
+            fd.append('action', 'toggle_available');
+            fd.append('id', id);
+            fd.append('status', status);
+            fetch(api + '/admin_menu.php', { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(d => { if (d.success) loadMenu(currentPage); });
+        }
+
+        function openEditModal(m) {
+            document.getElementById('menuModalTitle').textContent = 'Edit Menu Item';
+            document.getElementById('menu_id').value = m.id;
+            document.getElementById('menu_restaurant_id').value = m.restaurant_id;
+            document.getElementById('menu_name').value = m.name || '';
+            document.getElementById('menu_desc').value = m.description || '';
+            document.getElementById('menu_price').value = m.price || '';
+            document.getElementById('menu_available').checked = m.is_available == 1;
+            document.getElementById('menuModal').style.display = 'flex';
+        }
+
         document.getElementById('addMenuBtn').onclick = () => {
             document.getElementById('menuModalTitle').textContent = 'Add Menu Item';
             document.getElementById('menuForm').reset();
             document.getElementById('menu_id').value = '';
-            document.getElementById('menu_restaurant_id').innerHTML = restaurants.map(r => `<option value="${r.id}">${escapeHtml(r.name)}</option>`).join('');
             document.getElementById('menuModal').style.display = 'flex';
         };
         document.getElementById('closeMenuModal').onclick = () => document.getElementById('menuModal').style.display = 'none';
+
         document.getElementById('menuForm').onsubmit = (e) => {
             e.preventDefault();
             const fd = new FormData();
@@ -162,10 +183,10 @@ $base = getBaseUrl();
             fd.append('is_available', document.getElementById('menu_available').checked ? 1 : 0);
             fetch(api + '/admin_menu.php', { method: 'POST', body: fd, credentials: 'same-origin' })
                 .then(r => r.json())
-                .then(d => { if (d.success) { document.getElementById('menuModal').style.display = 'none'; loadMenu(); } else alert(d.error || 'Error'); });
+                .then(d => { if (d.success) { document.getElementById('menuModal').style.display = 'none'; loadMenu(currentPage); } else alert(d.error || 'Error'); });
         };
+
         function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-        function escapeAttr(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML.replace(/"/g, '&quot;'); }
     </script>
 </body>
 </html>

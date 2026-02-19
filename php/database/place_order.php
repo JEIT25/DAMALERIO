@@ -1,64 +1,92 @@
 <?php
-/**
- * Place order: expects JSON or POST with items[], delivery_address, notes, payment_method_id (optional).
- * Requires logged-in consumer.
- */
 session_start();
 header('Content-Type: application/json');
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/../includes/auth.php';
 
 requireRole('consumer');
+
 $user_id = $_SESSION['user']['id'];
+$address = trim($_POST['address'] ?? '');
+$payment_method = $_POST['payment_method'] ?? 'cod';
+$notes = trim($_POST['notes'] ?? '');
+$from_cart = isset($_POST['from_cart']);
 
-$input = $_POST;
-if (empty($input) && !empty(file_get_contents('php://input'))) {
-    $input = json_decode(file_get_contents('php://input'), true) ?: [];
-}
-
-$items = $input['items'] ?? [];
-$restaurant_id = isset($input['restaurant_id']) ? (int) $input['restaurant_id'] : 0;
-$delivery_address = trim($input['delivery_address'] ?? '');
-$notes = trim($input['notes'] ?? '');
-$payment_method_id = isset($input['payment_method_id']) && $input['payment_method_id'] !== '' && $input['payment_method_id'] !== null
-    ? (int) $input['payment_method_id'] : null;
-if ($payment_method_id === 0) $payment_method_id = null;
-
-if (empty($items) || $restaurant_id <= 0 || $delivery_address === '') {
-    echo json_encode(['success' => false, 'error' => 'Missing items, restaurant, or delivery address']);
+if (!$address) {
+    echo json_encode(['success' => false, 'error' => 'Address is required']);
     exit;
 }
 
+// Transaction
 $conn->begin_transaction();
+
 try {
-    $total = 0;
-    foreach ($items as $item) {
-        $qty = (int) ($item['quantity'] ?? 0);
-        $price = (float) ($item['unit_price'] ?? 0);
-        $total += $qty * $price;
-    }
+    if ($from_cart) {
+        // Fetch cart items grouped by restaurant
+        $sql = "SELECT ci.menu_item_id, ci.quantity, m.price, m.restaurant_id
+                FROM cart c
+                JOIN cart_items ci ON c.id = ci.cart_id
+                JOIN menu_items m ON ci.menu_item_id = m.id
+                WHERE c.user_id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param('s', $user_id);
+        $stmt->execute();
+        $res = $stmt->get_result();
 
-    $stmt = $conn->prepare("INSERT INTO orders (user_id, restaurant_id, status, total_amount, delivery_address, notes, payment_method_id) VALUES (?, ?, 'pending', ?, ?, ?, ?)");
-    $stmt->bind_param('sisdsi', $user_id, $restaurant_id, $total, $delivery_address, $notes, $payment_method_id);
-    $stmt->execute();
-    $order_id = $conn->insert_id;
-    $stmt->close();
+        $items_by_resto = [];
+        while ($row = $res->fetch_assoc()) {
+            $items_by_resto[$row['restaurant_id']][] = $row;
+        }
+        $stmt->close();
 
-    $ins = $conn->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)");
-    foreach ($items as $item) {
-        $menu_item_id = (int) ($item['menu_item_id'] ?? 0);
-        $qty = (int) ($item['quantity'] ?? 0);
-        $unit_price = (float) ($item['unit_price'] ?? 0);
-        $subtotal = $qty * $unit_price;
-        $ins->bind_param('iiidd', $order_id, $menu_item_id, $qty, $unit_price, $subtotal);
-        $ins->execute();
+        if (empty($items_by_resto)) {
+            throw new Exception("Cart is empty");
+        }
+
+        // Create one order per restaurant
+        foreach ($items_by_resto as $resto_id => $items) {
+            $total_amount = 0;
+            foreach ($items as $item)
+                $total_amount += $item['price'] * $item['quantity'];
+
+            // Insert Order
+            $stmt = $conn->prepare("INSERT INTO orders (user_id, restaurant_id, total_amount, delivery_address, notes, status) VALUES (?, ?, ?, ?, ?, 'pending')");
+            $stmt->bind_param('sidss', $user_id, $resto_id, $total_amount, $address, $notes);
+            $stmt->execute();
+            $order_id = $stmt->insert_id;
+            $stmt->close();
+
+            // Insert Order Items
+            $stmt = $conn->prepare("INSERT INTO order_items (order_id, menu_item_id, quantity, unit_price, subtotal) VALUES (?, ?, ?, ?, ?)");
+            foreach ($items as $item) {
+                $subtotal = $item['price'] * $item['quantity'];
+                $stmt->bind_param('iiidd', $order_id, $item['menu_item_id'], $item['quantity'], $item['price'], $subtotal);
+                $stmt->execute();
+            }
+            $stmt->close();
+        }
+
+        // Clear Cart
+        $stmt = $conn->prepare("DELETE FROM cart WHERE user_id = ?");
+        $stmt->bind_param('s', $user_id);
+        $stmt->execute();
+        $stmt->close();
+
     }
-    $ins->close();
+    else {
+        // Single item checkout (legacy/direct buy) - Optional support
+        // For now, assume cart flow
+        throw new Exception("Direct buy not implemented yet");
+    }
 
     $conn->commit();
-    echo json_encode(['success' => true, 'order_id' => $order_id]);
-} catch (Exception $e) {
-    $conn->rollback();
-    echo json_encode(['success' => false, 'error' => 'Failed to place order']);
+    echo json_encode(['success' => true]);
+
 }
+catch (Exception $e) {
+    $conn->rollback();
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
+}
+
 $conn->close();
+?>

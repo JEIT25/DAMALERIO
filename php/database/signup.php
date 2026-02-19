@@ -21,12 +21,17 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $birthdate = $_POST['birthdate'];
     $age = date_diff(date_create($birthdate), date_create('today'))->y;
     $secure_question = $_POST['secure_question'];
-    $secure_answerRaw = $_POST['secure_answer']; // Raw answer
+    $secure_answerRaw = $_POST['secure_answer'];
+    $secure_question2 = $_POST['secure_question2'];
+    $secure_answer2Raw = $_POST['secure_answer2'];
+    $secure_question3 = $_POST['secure_question3'];
+    $secure_answer3Raw = $_POST['secure_answer3'];
 
-    // --- THIS IS THE FIX ---
-    // Hash password AND the security answer
+    // Hash password AND all security answers
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-    $secure_answerHashed = password_hash($secure_answerRaw, PASSWORD_DEFAULT); // Hashing is re-enabled
+    $secure_answerHashed = password_hash($secure_answerRaw, PASSWORD_DEFAULT);
+    $secure_answer2Hashed = password_hash($secure_answer2Raw, PASSWORD_DEFAULT);
+    $secure_answer3Hashed = password_hash($secure_answer3Raw, PASSWORD_DEFAULT);
 
     // --- CHECK FOR DUPLICATES (Server-side safety check) ---
     // 1. Check ID
@@ -73,19 +78,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // New users are always consumers; admin/superadmin are set manually in DB
     $role = 'consumer';
 
-    // Prepare SQL statement (includes role)
+    // Prepare SQL statement (includes role and all security questions)
     $sql = "INSERT INTO users (
                 id, firstName, lastName, middleInitial, extension,
                 purok, barangay, city, province, zipCode, country, 
                 username, email, password, birthdate, age, 
-                secure_question, secure_answer, role
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                secure_question, secure_answer, secure_question2, secure_answer2, 
+                secure_question3, secure_answer3, role
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
 
     if ($stmt) {
         $stmt->bind_param(
-            'sssssssssssssssssss', // 19 params
+            'sssssssssssssssssssssis', // 23 params
             $id,
             $firstName,
             $lastName,
@@ -104,6 +110,10 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $age,
             $secure_question,
             $secure_answerHashed,
+            $secure_question2,
+            $secure_answer2Hashed,
+            $secure_question3,
+            $secure_answer3Hashed,
             $role
         );
 

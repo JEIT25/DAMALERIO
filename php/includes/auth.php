@@ -10,7 +10,8 @@ if (!function_exists('getBaseUrl')) {
      * Base URL for the app (no trailing slash).
      * Uses DOCUMENT_ROOT + DAMALERIO so it works on XAMPP.
      */
-    function getBaseUrl() {
+    function getBaseUrl()
+    {
         $doc = rtrim($_SERVER['DOCUMENT_ROOT'] ?? '', '/');
         $script = dirname($_SERVER['SCRIPT_NAME'] ?? '');
         // If we're in php/forms or php/admin etc., go up to project root
@@ -23,7 +24,8 @@ if (!function_exists('getBaseUrl')) {
 
 if (!function_exists('requireLogin')) {
     /** Redirect to login if no session user. */
-    function requireLogin() {
+    function requireLogin()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }
@@ -40,7 +42,8 @@ if (!function_exists('requireLogin')) {
 
 if (!function_exists('hasRole')) {
     /** Check if current user has a specific role. Admin includes superadmin. */
-    function hasRole($requiredRole) {
+    function hasRole($requiredRole)
+    {
         $role = $GLOBALS['userRole'] ?? ($_SESSION['user']['role'] ?? 'consumer');
         if ($requiredRole === 'admin') {
             return in_array($role, ['admin', 'superadmin'], true);
@@ -50,13 +53,15 @@ if (!function_exists('hasRole')) {
 }
 
 if (!function_exists('isAdmin')) {
-    function isAdmin() {
+    function isAdmin()
+    {
         return hasRole('admin');
     }
 }
 
 if (!function_exists('isSuperadmin')) {
-    function isSuperadmin() {
+    function isSuperadmin()
+    {
         return ($GLOBALS['userRole'] ?? ($_SESSION['user']['role'] ?? '')) === 'superadmin';
     }
 }
@@ -64,13 +69,14 @@ if (!function_exists('isSuperadmin')) {
 if (!function_exists('requireRole')) {
     /**
      * Require login and one of the given roles.
-     * @param array $allowedRoles e.g. ['consumer','admin']
+     * @param string|array $allowedRoles e.g. 'superadmin' or ['consumer','admin']
      * @return array user row
      */
-    function requireRole($allowedRoles) {
+    function requireRole($allowedRoles)
+    {
         $user = requireLogin();
         $role = $user['role'] ?? 'consumer';
-        if (!in_array($role, (array) $allowedRoles, true)) {
+        if (!in_array($role, (array)$allowedRoles, true)) {
             // Redirect to their dashboard
             $base = getBaseUrl();
             header('Location: ' . $base . '/php/auth/dashboard.php');
@@ -82,7 +88,8 @@ if (!function_exists('requireRole')) {
 
 if (!function_exists('getDashboardRedirect')) {
     /** Return redirect URL after login based on role. */
-    function getDashboardRedirect() {
+    function getDashboardRedirect()
+    {
         if (session_status() === PHP_SESSION_NONE) {
             session_start();
         }

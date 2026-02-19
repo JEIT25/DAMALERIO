@@ -1,8 +1,5 @@
-<?php
-if (!isset($basePath)) $basePath = '../../';
-?>
 <footer class="dashboard-footer">
-    <div class="footer-bottom">
-        <p>All rights reserved &copy; 2025 FoodGrab</p>
+    <div class="footer-content">
+        <p>&copy; <?php echo date('Y'); ?> FoodGrab. All rights reserved.</p>
     </div>
 </footer>

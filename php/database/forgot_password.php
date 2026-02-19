@@ -16,7 +16,7 @@ if ($action === 'verify_user_id') {
         echo json_encode(['status' => 'error', 'message' => 'User ID is required.']);
         exit;
     }
-    $stmt = $conn->prepare("SELECT id, username, email FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, username, email, firstName, lastName FROM users WHERE id = ?");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -25,8 +25,16 @@ if ($action === 'verify_user_id') {
         $_SESSION['forgot_password_user_id'] = $user['id'];
         $_SESSION['forgot_password_username'] = $user['username'];
         $_SESSION['forgot_password_email'] = $user['email'];
-        echo json_encode(['status' => 'success', 'user_id' => $user['id'], 'username' => $user['username'], 'email' => $user['email']]);
-    } else {
+        $fullName = $user['firstName'] . ' ' . $user['lastName'];
+        echo json_encode([
+            'status' => 'success',
+            'user_id' => $user['id'],
+            'username' => $user['username'],
+            'email' => $user['email'],
+            'fullname' => $fullName
+        ]);
+    }
+    else {
         echo json_encode(['status' => 'error', 'message' => 'User ID not found.']);
     }
     $stmt->close();
@@ -70,7 +78,7 @@ if ($action === 'send_otp') {
     $del->bind_param('s', $userId);
     $del->execute();
     $del->close();
-    $otp = str_pad((string) random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+    $otp = str_pad((string)random_int(0, 999999), 6, '0', STR_PAD_LEFT);
     $expiresAt = date('Y-m-d H:i:s', time() + (15 * 60));
     $ins = $conn->prepare("INSERT INTO password_reset_otp (user_id, otp_code, expires_at) VALUES (?, ?, ?)");
     $ins->bind_param('sss', $userId, $otp, $expiresAt);
@@ -81,14 +89,14 @@ if ($action === 'send_otp') {
     $ins->close();
 
     $email = $_SESSION['forgot_password_email'];
-    $subject = 'FoodGrab - Password Reset Code';
-    $body = "Your password reset code is: $otp\n\nThis code expires in 15 minutes. Do not share it.";
-    $headers = 'From: noreply@foodgrab.local' . "\r\n" . 'Content-Type: text/plain; charset=UTF-8';
-    $sent = @mail($email, $subject, $body, $headers);
+
+    // Send using Mailjet via email_config.php
+    require_once __DIR__ . '/../config/email_config.php';
+    $sent = sendOTPEmail($email, $otp);
 
     echo json_encode([
         'status' => $sent ? 'success' : 'error',
-        'message' => $sent ? 'OTP sent to your email.' : 'Email could not be sent. Check server mail config or use another method.',
+        'message' => $sent ? 'OTP sent to your email.' : 'Email could not be sent. Check Mailjet configuration.',
         'email' => $email,
         'remaining_seconds' => 60
     ]);
@@ -117,10 +125,12 @@ if ($action === 'verify_otp') {
             $conn->query("UPDATE password_reset_otp SET used = 1 WHERE id = " . (int)$row['id']);
             $_SESSION['forgot_password_otp_verified'] = true;
             echo json_encode(['status' => 'success', 'message' => 'OTP verified.']);
-        } else {
+        }
+        else {
             echo json_encode(['status' => 'error', 'message' => 'OTP expired. Request a new one.']);
         }
-    } else {
+    }
+    else {
         echo json_encode(['status' => 'error', 'message' => 'Invalid OTP.']);
     }
     $stmt->close();
@@ -134,14 +144,27 @@ if ($action === 'get_security_question') {
         exit;
     }
     $userId = $_SESSION['forgot_password_user_id'];
-    $stmt = $conn->prepare("SELECT secure_question FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT secure_question, secure_question2, secure_question3 FROM users WHERE id = ?");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        echo json_encode(['status' => 'success', 'question' => $row['secure_question']]);
-    } else {
+
+        // Check if questions are set
+        if (empty($row['secure_question']) || empty($row['secure_question2']) || empty($row['secure_question3'])) {
+            echo json_encode(['status' => 'error', 'message' => 'Security questions not set for this account. Cannot proceed.']);
+            exit;
+        }
+
+        echo json_encode([
+            'status' => 'success',
+            'question1' => $row['secure_question'],
+            'question2' => $row['secure_question2'],
+            'question3' => $row['secure_question3']
+        ]);
+    }
+    else {
         echo json_encode(['status' => 'error', 'message' => 'User not found.']);
     }
     $stmt->close();
@@ -155,24 +178,40 @@ if ($action === 'verify_security_question') {
         exit;
     }
     $userId = $_SESSION['forgot_password_user_id'];
-    $answer = trim($_POST['answer'] ?? '');
-    if (empty($answer)) {
-        echo json_encode(['status' => 'error', 'message' => 'Answer is required.']);
+    $answer1 = trim($_POST['answer1'] ?? '');
+    $answer2 = trim($_POST['answer2'] ?? '');
+    $answer3 = trim($_POST['answer3'] ?? '');
+
+    if (empty($answer1) || empty($answer2) || empty($answer3)) {
+        echo json_encode(['status' => 'error', 'message' => 'All answers are required.']);
         exit;
     }
-    $stmt = $conn->prepare("SELECT secure_answer FROM users WHERE id = ?");
+
+    $stmt = $conn->prepare("SELECT secure_answer, secure_answer2, secure_answer3 FROM users WHERE id = ?");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
+
     if ($result->num_rows > 0) {
         $row = $result->fetch_assoc();
-        if (password_verify($answer, $row['secure_answer'])) {
+        $correctCount = 0;
+
+        if (password_verify($answer1, $row['secure_answer']))
+            $correctCount++;
+        if (password_verify($answer2, $row['secure_answer2']))
+            $correctCount++;
+        if (password_verify($answer3, $row['secure_answer3']))
+            $correctCount++;
+
+        if ($correctCount >= 2) {
             $_SESSION['forgot_password_security_verified'] = true;
-            echo json_encode(['status' => 'success', 'message' => 'Answer correct. Set new password.']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Incorrect answer.']);
+            echo json_encode(['status' => 'success', 'message' => 'Identity verified. Set new password.']);
         }
-    } else {
+        else {
+            echo json_encode(['status' => 'error', 'message' => "Verification failed. You got $correctCount/3 correct. Need at least 2."]);
+        }
+    }
+    else {
         echo json_encode(['status' => 'error', 'message' => 'User not found.']);
     }
     $stmt->close();
@@ -206,7 +245,8 @@ if ($action === 'change_password') {
         $del2->close();
         unset($_SESSION['forgot_password_user_id'], $_SESSION['forgot_password_username'], $_SESSION['forgot_password_email'], $_SESSION['forgot_password_otp_verified'], $_SESSION['forgot_password_security_verified']);
         echo json_encode(['status' => 'success', 'message' => 'Password changed. You can login now.']);
-    } else {
+    }
+    else {
         echo json_encode(['status' => 'error', 'message' => 'Failed to update password.']);
     }
     $stmt->close();

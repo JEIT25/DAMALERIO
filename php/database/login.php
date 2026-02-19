@@ -2,11 +2,29 @@
 session_start();
 require __DIR__ . '/db_connect.php';
 
-// This function now *only* handles failed login attempts and updates the $response
-function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response) // Takes $response by reference
+// Function to log login/logout actions
+function logUserAction($user_id, $action)
+{
+    global $conn;
+    try {
+        $stmt = $conn->prepare("INSERT INTO login_logs (user_id, action) VALUES (?, ?)");
+        $stmt->bind_param('ss', $user_id, $action);
+        $stmt->execute();
+        $stmt->close();
+    }
+    catch (Exception $e) {
+    // Silently fail logging
+    }
+}
+
+// This function now *only* handles failed login attempts and updates $response
+function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response, $usernameOrEmail = '') // Takes $response by reference
 {
     $_SESSION['failed_attempts']++;
     $response['failed_attempts'] = $_SESSION['failed_attempts'];
+
+    // Log failed login attempt - REMOVED (schema specific)
+    // logLoginAttempt($usernameOrEmail, 'failed', ...);
 
     // Lockout durations in seconds for specific failed attempts
     $lockoutDurations = [3 => 15, 6 => 30, 9 => 60]; // 9 attempts = 60 seconds
@@ -15,9 +33,10 @@ function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response) // Takes $r
     if (array_key_exists($_SESSION['failed_attempts'], $lockoutDurations)) {
         $_SESSION['lockout_time'] = time() + $lockoutDurations[$_SESSION['failed_attempts']];
 
-    // *** THIS IS THE FIX for the 60-second timer ***
-    // Use the 60s value for 9 or more attempts
-    } elseif ($_SESSION['failed_attempts'] >= 9) {
+    // *** THIS IS THE FIX for 60-second timer ***
+    // Use 60s value for 9 or more attempts
+    }
+    elseif ($_SESSION['failed_attempts'] >= 9) {
         $_SESSION['lockout_time'] = time() + $lockoutDurations[9]; // Was hard-coded to 15
     }
 
@@ -36,6 +55,8 @@ function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response) // Takes $r
 
     $response['lockout_time'] = $_SESSION['lockout_time'];
 }
+
+
 
 // *** THIS IS THE FIX for the JSON Error ***
 // First, check what kind of request this is.
@@ -59,14 +80,14 @@ if ($isFormSubmission) {
         'lockout_time' => $_SESSION['lockout_time']
     ];
 
-    $usernameOrEmail = isset($_POST['username']) ? trim((string) $_POST['username']) : '';
-    $password = isset($_POST['password']) ? (string) $_POST['password'] : '';
+    $usernameOrEmail = isset($_POST['username']) ? trim((string)$_POST['username']) : '';
+    $password = isset($_POST['password']) ? (string)$_POST['password'] : '';
     $isPwEmpty = $password === '';
     $isUsernameEmpty = $usernameOrEmail === '';
 
-    // If username or password is empty, return the corresponding error messages
+    // If username or password is empty, return corresponding error messages
     if ($isPwEmpty || $isUsernameEmpty) {
-        handleFailedLogin($isUsernameEmpty, $isPwEmpty, $response);
+        handleFailedLogin($isUsernameEmpty, $isPwEmpty, $response, $usernameOrEmail);
         echo json_encode($response);
         exit;
     }
@@ -89,17 +110,24 @@ if ($isFormSubmission) {
                 $_SESSION['user'] = $user;
                 $_SESSION['failed_attempts'] = 0;
                 $_SESSION['lockout_time'] = 0; // Reset lockout on success
+
+                // Log successful login
+                logUserAction($user['id'], 'login');
+
                 $base = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/DAMALERIO';
                 $response['redirect'] = $base . '/php/auth/dashboard.php';
-            } else {
-                handleFailedLogin(false, false, $response);
             }
-        } else {
-            handleFailedLogin(false, false, $response);
+            else {
+                handleFailedLogin(false, false, $response, $usernameOrEmail);
+            }
+        }
+        else {
+            handleFailedLogin(false, false, $response, $usernameOrEmail);
         }
 
         $stmt->close();
-    } else {
+    }
+    else {
         $response['error'] = "Error preparing query.";
     }
 
@@ -107,9 +135,10 @@ if ($isFormSubmission) {
     echo json_encode($response);
     exit;
 
-    // --- END: LOGIN FORM LOGIC ---
+// --- END: LOGIN FORM LOGIC ---
 
-} else {
+}
+else {
     // --- START: updateRegisterAccess LOGIC ---
 
     // This logic is for restricting/unrestricting access via .htaccess
@@ -134,7 +163,8 @@ HTACCESS;
         echo json_encode(['status' => 'File access restricted']);
 
     // Unrestrict access
-    } else {
+    }
+    else {
         if (file_exists($htaccessPath)) {
             unlink($htaccessPath); // Remove .htaccess file to unrestrict access
         }
@@ -142,6 +172,6 @@ HTACCESS;
     }
     exit; // Important: exit after handling this request.
 
-    // --- END: updateRegisterAccess LOGIC ---
+// --- END: updateRegisterAccess LOGIC ---
 }
 ?>

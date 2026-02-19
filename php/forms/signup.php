@@ -174,23 +174,63 @@
 
                 <div class="form-step">
                     <fieldset>
-                        <legend>Security Question (Step 4 of 4)</legend>
+                        <legend>Security Questions (Step 4 of 4)</legend>
                         <div class="form-row">
                             <div class="form-group">
-                                <label for="secure_question">Select a Security Question<span style="color: red">*</span>:</label>
+                                <label for="secure_question">Security Question 1<span style="color: red">*</span>:</label>
                                 <select id="secure_question" name="secure_question">
                                     <option value="">-- Choose a Question --</option>
                                     <option value="Who is your bestfriend in elementary?">Who is your bestfriend in elementary?</option>
                                     <option value="What is the name of your pet?">What is the name of your pet?</option>
                                     <option value="Who is your favorite teacher in highschool?">Who is your favorite teacher in highschool?</option>
+                                    <option value="What was your first car?">What was your first car?</option>
+                                    <option value="In what city were you born?">In what city were you born?</option>
                                 </select>
                                 <span class="validation-message" id="secure_questionError"></span>
                             </div>
 
                             <div class="form-group">
-                                <label for="secure_answer">Your Answer<span style="color: red">*</span>:</label>
+                                <label for="secure_answer">Your Answer 1<span style="color: red">*</span>:</label>
                                 <input type="text" id="secure_answer" name="secure_answer" placeholder="Enter your answer">
                                 <span class="validation-message" id="secure_answerError"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secure_question2">Security Question 2<span style="color: red">*</span>:</label>
+                                <select id="secure_question2" name="secure_question2">
+                                    <option value="">-- Choose a Question --</option>
+                                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                                    <option value="What elementary school did you attend?">What elementary school did you attend?</option>
+                                    <option value="What is your favorite food?">What is your favorite food?</option>
+                                    <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                                    <option value="What is the name of your best friend?">What is the name of your best friend?</option>
+                                </select>
+                                <span class="validation-message" id="secure_question2Error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secure_answer2">Your Answer 2<span style="color: red">*</span>:</label>
+                                <input type="text" id="secure_answer2" name="secure_answer2" placeholder="Enter your answer">
+                                <span class="validation-message" id="secure_answer2Error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secure_question3">Security Question 3<span style="color: red">*</span>:</label>
+                                <select id="secure_question3" name="secure_question3">
+                                    <option value="">-- Choose a Question --</option>
+                                    <option value="What is your father's middle name?">What is your father's middle name?</option>
+                                    <option value="What street did you grow up on?">What street did you grow up on?</option>
+                                    <option value="What is your favorite movie?">What is your favorite movie?</option>
+                                    <option value="What is the name of your first pet?">What is the name of your first pet?</option>
+                                    <option value="What year did you graduate high school?">What year did you graduate high school?</option>
+                                </select>
+                                <span class="validation-message" id="secure_question3Error"></span>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="secure_answer3">Your Answer 3<span style="color: red">*</span>:</label>
+                                <input type="text" id="secure_answer3" name="secure_answer3" placeholder="Enter your answer">
+                                <span class="validation-message" id="secure_answer3Error"></span>
                             </div>
                         </div>
                     </fieldset>

@@ -241,6 +241,7 @@ input[type="text"],
 input[type="password"],
 input[type="email"],
 input[type="number"],
+input[type="date"],
 textarea,
 select {
     width: 100%;
@@ -265,6 +266,35 @@ select:focus {
     box-shadow: 0 0 0 3px var(--primary-light);
 }
 
+/* Specific fix for date inputs to match text inputs */
+input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+    display: block;
+    font-family: var(--font-body);
+    color: var(--text-main);
+    min-height: 50px; /* Force visual consistency */
+    background-color: var(--bg-card);
+}
+
+/* Placeholder color for date inputs (often gray by default) */
+input[type="date"]::-webkit-datetime-edit {
+    color: var(--text-main);
+}
+
+/* Style the calendar icon */
+input[type="date"]::-webkit-calendar-picker-indicator {
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.2s;
+    padding: 2px;
+}
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+    opacity: 1;
+    background-color: rgba(0,0,0,0.05);
+    border-radius: 4px;
+}
+
 /* Card hover feedback */
 .card-interactive {
     transition: transform var(--transition-base), box-shadow var(--transition-base), border-color var(--transition-base);
@@ -276,4 +306,56 @@ select:focus {
 .card-interactive:focus-visible {
     outline: 2px solid var(--primary-color);
     outline-offset: 2px;
+}
+
+/* Global Table Styles */
+.orders-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--bg-card);
+    border-radius: var(--radius-lg);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    border: 1px solid var(--border-light, #e2e8f0);
+}
+.orders-table th,
+.orders-table td {
+    padding: var(--space-4, 1rem) var(--space-5, 1.25rem);
+    text-align: left;
+    border-bottom: 1px solid var(--border-light, #e2e8f0);
+}
+.orders-table th {
+    background: var(--bg-body, #f7fafc);
+    font-weight: 600;
+    font-size: var(--text-sm, 0.875rem);
+    color: var(--text-secondary, #4a5568);
+}
+.orders-table tr:last-child td { border-bottom: none; }
+.orders-table tr:hover td { background: rgba(255, 82, 82, 0.03); }
+.orders-table a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 600;
+}
+.orders-table a:hover { text-decoration: underline; }
+
+/* Status Badges */
+.status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    display: inline-block;
+    text-transform: capitalize;
+}
+.status-ok { background: var(--success-bg); color: var(--success-color); }
+.status-cancel { background: var(--error-bg); color: var(--error-color); }
+.status-pending { background: var(--warning-bg); color: var(--warning-color); }
+
+/* Pagination Controls */
+.pagination-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    padding-top: 1rem;
 }

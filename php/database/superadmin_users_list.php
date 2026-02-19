@@ -6,7 +6,7 @@ require_once __DIR__ . '/../includes/auth.php';
 
 requireRole('superadmin');
 
-$result = $conn->query("SELECT id, firstName, lastName, username, email, role FROM users ORDER BY role, username");
+$result = $conn->query("SELECT id, firstName, lastName, username, email, role, is_blocked FROM users ORDER BY role, username");
 $list = [];
 while ($row = $result->fetch_assoc()) {
     $list[] = $row;

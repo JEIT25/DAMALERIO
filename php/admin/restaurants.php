@@ -16,34 +16,17 @@ $base = getBaseUrl();
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Restaurants - Admin</title>
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=design-system.css">
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=dashboard.css">
-    <link rel="stylesheet" href="../../css/serve_asset.php?file=order_food.css">
+    <link rel="stylesheet" href="../../css/design-system.css">
+    <link rel="stylesheet" href="../../css/dashboard.css">
+    <link rel="stylesheet" href="../../css/order_food.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body>
+    <?php include __DIR__ . '/../includes/layout/navbar.php'; ?>
     <div class="dashboard-container">
-        <header class="dashboard-header">
-            <div class="navbar-left">
-                <a href="index.php" style="display:flex;align-items:center;gap:0.75rem;text-decoration:none;color:inherit;">
-                    <img src="../../images/logo4.png" alt="Logo" class="logo">
-                    <span class="navbar-text">FoodGrab <span class="navbar-subtext">Admin</span></span>
-                </a>
-            </div>
-            <div class="navbar-right">
-                <form action="" method="POST">
-                    <input type="hidden" name="logout_action" value="1">
-                    <button type="submit" class="nav-link">Log Out</button>
-                </form>
-            </div>
-        </header>
-        <aside class="dashboard-sidebar">
-            <nav class="sidebar-menu">
-                <a href="index.php">Dashboard</a>
-                <a href="orders.php">Manage Orders</a>
-                <a href="restaurants.php" class="active">Restaurants</a>
-                <a href="menu.php">Menu Items</a>
-            </nav>
-        </aside>
+        <!-- Sidebar -->
+        <?php $currentPage = 'admin_restaurants';
+include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         <main class="dashboard-main">
             <h1>Restaurants</h1>
             <button type="button" id="addRestaurantBtn" class="submitBtn" style="margin-bottom:1rem;">Add Restaurant</button>
@@ -74,46 +57,82 @@ $base = getBaseUrl();
                 </div>
             </div>
         </main>
-        <footer class="dashboard-footer"><div class="footer-bottom"><p>&copy; 2025</p></div></footer>
+        <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
     </div>
     <script>
         const api = '<?php echo $base; ?>' + '/php/database';
-        function load() {
-            fetch(api + '/admin_restaurants.php', { credentials: 'same-origin' })
+        let currentPage = 1;
+        let totalPages = 1;
+
+        function load(page = 1) {
+            currentPage = page;
+            fetch(api + '/admin_restaurants.php?page=' + page, { credentials: 'same-origin' })
                 .then(r => r.json())
                 .then(data => {
-                    if (!data.success || !data.restaurants.length) {
-                        document.getElementById('restaurantsList').innerHTML = '<p class="muted">No restaurants.</p>';
+                    if (!data.success) return;
+
+                    totalPages = data.pagination?.total_pages || 1;
+                    updatePaginationUI();
+
+                    if (!data.restaurants.length) {
+                        document.getElementById('restaurantsList').innerHTML = '<div class="empty-state"><p>No restaurants found.</p></div>';
                         return;
                     }
-                    let html = '<table class="orders-table"><thead><tr><th>Name</th><th>Address</th><th>Active</th><th></th></tr></thead><tbody>';
+
+                    let html = '<table class="orders-table"><thead><tr><th>Name</th><th>Description</th><th>Address</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
                     data.restaurants.forEach(r => {
-                        html += `<tr><td>${escapeHtml(r.name)}</td><td>${escapeHtml(r.address)}</td><td>${r.is_active ? 'Yes' : 'No'}</td><td><button type="button" class="edit-rest" data-id="${r.id}" data-name="${escapeAttr(r.name)}" data-desc="${escapeAttr(r.description)}" data-addr="${escapeAttr(r.address)}" data-active="${r.is_active}">Edit</button> <button type="button" class="delete-rest" data-id="${r.id}">Delete</button></td></tr>`;
+                        const activeBtn = r.is_active == 1
+                            ? `<button class="btn-secondary" style="color:var(--success-color); border-color:var(--success-color);" onclick="toggleRest(${r.id}, 0)">Active</button>`
+                            : `<button class="btn-secondary" style="opacity:0.6;" onclick="toggleRest(${r.id}, 1)">Inactive</button>`;
+
+                        html += `<tr>
+                            <td style="font-weight:600">${escapeHtml(r.name)}</td>
+                            <td><div class="muted small">${escapeHtml(r.description || '-')}</div></td>
+                            <td>${escapeHtml(r.address || '-')}</td>
+                            <td>${activeBtn}</td>
+                            <td>
+                                <button type="button" class="btn-primary" style="padding:0.25rem 0.75rem; font-size:0.85rem;"
+                                    onclick='openEditModal(${JSON.stringify(r)})'>
+                                    Edit
+                                </button>
+                            </td>
+                        </tr>`;
                     });
                     html += '</tbody></table>';
+                    html += `<div class="pagination-controls" style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
+                        <button class="btn-secondary" onclick="load(currentPage-1)" ${currentPage<=1?'disabled':''}>Previous</button>
+                        <span style="align-self:center;">Page ${currentPage} of ${totalPages}</span>
+                        <button class="btn-secondary" onclick="load(currentPage+1)" ${currentPage>=totalPages?'disabled':''}>Next</button>
+                    </div>`;
+
                     document.getElementById('restaurantsList').innerHTML = html;
-                    document.querySelectorAll('.edit-rest').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            document.getElementById('modalTitle').textContent = 'Edit Restaurant';
-                            document.getElementById('rest_id').value = btn.dataset.id;
-                            document.getElementById('rest_name').value = btn.dataset.name || '';
-                            document.getElementById('rest_desc').value = btn.dataset.desc || '';
-                            document.getElementById('rest_address').value = btn.dataset.addr || '';
-                            document.getElementById('rest_active').checked = btn.dataset.active == 1;
-                            document.getElementById('restaurantModal').style.display = 'flex';
-                        });
-                    });
-                    document.querySelectorAll('.delete-rest').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            if (!confirm('Delete this restaurant and its menu items?')) return;
-                            const fd = new FormData(); fd.append('action', 'delete'); fd.append('id', btn.dataset.id);
-                            fetch(api + '/admin_restaurants.php', { method: 'POST', body: fd, credentials: 'same-origin' })
-                                .then(r => r.json())
-                                .then(d => { if (d.success) load(); });
-                        });
-                    });
                 });
         }
+
+        function updatePaginationUI() {
+            // Handled inside HTML generation for simplicity
+        }
+
+        function toggleRest(id, status) {
+            const fd = new FormData();
+            fd.append('action', 'toggle_active');
+            fd.append('id', id);
+            fd.append('status', status);
+            fetch(api + '/admin_restaurants.php', { method: 'POST', body: fd, credentials: 'same-origin' })
+                .then(r => r.json())
+                .then(d => { if (d.success) load(currentPage); });
+        }
+
+        function openEditModal(r) {
+            document.getElementById('modalTitle').textContent = 'Edit Restaurant';
+            document.getElementById('rest_id').value = r.id;
+            document.getElementById('rest_name').value = r.name || '';
+            document.getElementById('rest_desc').value = r.description || '';
+            document.getElementById('rest_address').value = r.address || '';
+            document.getElementById('rest_active').checked = r.is_active == 1;
+            document.getElementById('restaurantModal').style.display = 'flex';
+        }
+
         document.getElementById('addRestaurantBtn').onclick = () => {
             document.getElementById('modalTitle').textContent = 'Add Restaurant';
             document.getElementById('restaurantForm').reset();
@@ -121,6 +140,7 @@ $base = getBaseUrl();
             document.getElementById('restaurantModal').style.display = 'flex';
         };
         document.getElementById('closeModal').onclick = () => document.getElementById('restaurantModal').style.display = 'none';
+
         document.getElementById('restaurantForm').onsubmit = (e) => {
             e.preventDefault();
             const fd = new FormData();
@@ -132,10 +152,10 @@ $base = getBaseUrl();
             fd.append('is_active', document.getElementById('rest_active').checked ? 1 : 0);
             fetch(api + '/admin_restaurants.php', { method: 'POST', body: fd, credentials: 'same-origin' })
                 .then(r => r.json())
-                .then(d => { if (d.success) { document.getElementById('restaurantModal').style.display = 'none'; load(); } else alert(d.error || 'Error'); });
+                .then(d => { if (d.success) { document.getElementById('restaurantModal').style.display = 'none'; load(currentPage); } else alert(d.error || 'Error'); });
         };
         function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
-        function escapeAttr(s) { return escapeHtml(s).replace(/"/g, '&quot;'); }
+
         load();
     </script>
 </body>
