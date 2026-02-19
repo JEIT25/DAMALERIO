@@ -137,12 +137,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                             <td style="padding:0.75rem; color:var(--text-muted); font-size:0.85rem;">${escapeHtml(r.address || '-')}</td>
                             <td style="padding:0.75rem;">${statusBadge}</td>
                             <td style="padding:0.75rem; text-align:right; border-top-right-radius:6px; border-bottom-right-radius:6px;">
-                                <button class="btn-secondary" style="margin-right:0.25rem; padding: 0.3rem 0.6rem; font-size: 0.8rem;" onclick='openEditModal(${JSON.stringify(r)})' title="Edit">
-                                    <i class="fa-solid fa-pen"></i>
-                                </button>
-                                <button class="btn-secondary" style="padding: 0.3rem 0.6rem; font-size: 0.8rem; color:${isActive ? 'var(--error-color)' : 'var(--success-color)'}; border-color:currentColor;" onclick="toggleRest(${r.id}, ${isActive ? 0 : 1})" title="${toggleBtnKey}">
-                                    <i class="fa-solid ${isActive ? 'fa-ban' : 'fa-check'}"></i>
-                                </button>
+                                <a href="javascript:void(0)" style="color:var(--primary-color); font-weight:600; font-size:0.85rem; text-decoration:none; cursor:pointer;" onclick='openEditModal(${JSON.stringify(r)})'>Edit</a>
                             </td>
                         </tr>`;
                     });

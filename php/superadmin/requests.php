@@ -56,7 +56,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                             <td>${escapeHtml(r.r_first + ' ' + r.r_last)}</td>
                             <td>${escapeHtml(r.t_first + ' ' + r.t_last)} <span class="muted">(${r.t_username})</span></td>
                             <td>${escapeHtml(r.reason)}</td>
-                            <td><span class="status-badge status-${r.status}">${r.status}</span></td>
+                            <td><span style="display:inline-block; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.78rem; font-weight:600; ${r.status === 'pending' ? 'background:#fef3c7; color:#d97706;' : r.status === 'approved' ? 'background:#dcfce7; color:#16a34a;' : 'background:#fee2e2; color:#dc2626;'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
                             <td>${new Date(r.created_at).toLocaleDateString()}</td>
                             <td>`;
 
@@ -66,9 +66,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                                 <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="handleRequest(${r.id}, 'reject')">Reject</button>
                             </div>`;
                         } else {
-                            const label = r.status === 'approved' ? 'Approved' : 'Rejected';
-                            const color = r.status === 'approved' ? '#dc2626' : '#6b7280';
-                            html += `<span style="font-weight:600; color:${color};">${label}</span>`;
+                            html += `<span class="muted">Processed</span>`;
                         }
 
                         html += `</td></tr>`;

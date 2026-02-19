@@ -128,7 +128,7 @@ exit;
                     </div>
 
                     <label id="secure_question_label" style="display:block; margin-bottom:8px; font-weight:600;"></label>
-                    <input type="text" id="secure_answer" name="secure_answer" required placeholder="Enter your answer">
+                    <input type="password" id="secure_answer" name="secure_answer" required placeholder="Enter your answer">
 
                     <!-- Hidden field to pass the ID to the final handler -->
                     <input type="hidden" id="hidden_user_id" name="user_id">
@@ -162,7 +162,7 @@ exit;
         </div>
 
         <div class="footer-bottom">
-            <p>All rights reserved &copy; 2025</p>
+            <p>All rights reserved &copy; 2026</p>
         </div>
     </footer>
 

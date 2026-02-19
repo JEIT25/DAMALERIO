@@ -124,7 +124,7 @@ endif; ?>
 
                 <div class="form-group">
                     <label for="otp_code">Verification Code:</label>
-                    <input type="text" id="otp_code" name="otp_code" required
+                    <input type="password" id="otp_code" name="otp_code" required
                            maxlength="6" pattern="[0-9]{6}"
                            placeholder="Enter 6-digit code" autocomplete="one-time-code">
                 </div>
@@ -143,7 +143,7 @@ endif; ?>
 
     <footer>
         <div class="footer-bottom">
-            <p>All rights reserved &copy; 2025</p>
+            <p>All rights reserved &copy; 2026</p>
         </div>
     </footer>
 

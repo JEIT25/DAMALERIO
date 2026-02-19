@@ -141,7 +141,7 @@ endif; ?>
 
     <footer>
         <div class="footer-bottom">
-            <p>All rights reserved &copy; 2025</p>
+            <p>All rights reserved &copy; 2026</p>
         </div>
     </footer>
 

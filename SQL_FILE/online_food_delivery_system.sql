@@ -60,13 +60,11 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `firstName`, `lastName`, `middleInitial`, `extension`, `sex`, `birthdate`, `age`, `purok`, `barangay`, `city`, `province`, `zipCode`, `country`, `username`, `email`, `password`, `secure_question`, `secure_answer`, `secure_question2`, `secure_answer2`, `secure_question3`, `secure_answer3`, `role`, `is_blocked`) VALUES
-('1234-5671', 'Misisipiq', 'Garageq', '', '', 'male', '2005-02-02', 21, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'test1230', 'instructor@csucc.edu.ph0', '$2y$10$y1FO2dNYFV6JKT/UEJktL.LdvDBEufFpT51baui9.Db9Ar0BIeKtC', NULL, NULL, NULL, NULL, NULL, NULL, 'admin', 0),
-('1234-5673', 'Misisipia', 'Garagea', '', '', 'male', '2003-02-02', 23, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'c', 'jeroldash.amora@gmail.coms', '$2y$10$fwsRY75nk5MRBtxv9F3p2eQw8DbfV/oPpx4C1NR37RijXRHpyPiVi', NULL, NULL, NULL, NULL, NULL, NULL, 'admin', 0),
-('1234-5678', 'Misisipi', 'Garage', '', '', 'male', '2000-02-02', 26, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'test123', 'jeroldash.amora@gmail.com', '$2y$10$WYLdnkGFU1MVhqtZZGRbXupYQfP8eKtj//t5W6DmSVzRfm0ZMQGXy', '1. Who is your bestfriend in elementary? *', '$2y$10$oAxzxNREO5zqOOqdlv64MOrSILWtPDXTBAI9zKBaRexUP9/3mPBp2', '2. What is the name of your pet? *', '$2y$10$qe8S/KD9Iff/3q5Ea.J5duSHhZS6mCZG70/YbPoCqfuTwJA8VrM06', '3. Who is your favorite teacher in highschool? *', '$2y$10$9IwiBrtHZBdldBDT.gYVnuALtbRNyEYEsHKWXmerwlpDvaHb2/iTe', 'superadmin', 0),
-('1234-7893', 'Misisipis', 'Garages', '', '', 'male', '2000-02-02', 26, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'test1234', 'instructors@csucc.edu.ph', '$2y$10$CMT77dHtHBWYQWhwzkNPce0YUDqmM5Ol3NA6S5vksxz81nyq//1KO', '1. Who is your bestfriend in elementary? *', '$2y$10$MvcpF9RZfcRxnba0bjOVmeIA2FkmTIS/5t4Pn3IlWZJNJVCBmrdH6', '2. What is the name of your pet? *', '$2y$10$gtUup7ukshnxnhNUko11Veou3FaPJI8tdvwstmG4FG5pvayPyjJ0y', '3. Who is your favorite teacher in highschool? *', '$2y$10$FaOdDbvwhRZTbqC4.yXu8eFtYMkr2/kfg5wxL9Kr7kT.zZUxDc4pu', 'admin', 0),
-('2021-0909', 'Jeit', 'Hero', '', '', 'male', '2003-02-24', 22, 'Purok 4', 'Baranggay 9', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'jeit25', 'jeit@gmail.com', '$2y$10$8DbhGATwd2hb/4z/20eDfedQpqWzY2rAJsuzQpPO1NwGncwgOmDJK', '1. Who is your bestfriend in elementary? *', '$2y$10$jzfLVe1KCOKEh.B36Ld6TuiLbPVbmxNrP1qFOJTrDGTSbN7P2SyCa', '2. What is the name of your pet? *', '$2y$10$jzfLVe1KCOKEh.B36Ld6TuiLbPVbmxNrP1qFOJTrDGTSbN7P2SyCa', '3. Who is your favorite teacher in highschool? *', '$2y$10$jzfLVe1KCOKEh.B36Ld6TuiLbPVbmxNrP1qFOJTrDGTSbN7P2SyCa', 'consumer', 1),
-('2123-4324', 'Misisipise', 'Garagef', '', '', 'male', '2000-02-02', 26, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'test123449', 'instructor@csucc.edu.phse', '$2y$10$u0jEWDNSHQGQ3DH5WfoEwOOF8kY8/bvBHBzBk/DSA.93ckNGVYPE2', '1. Who is your bestfriend in elementary? *', '$2y$10$ON2Feay1QS4EeWQy6VvCOefoG/d1xCObDevFOfKZecSwQsmWrP7UO', '2. What is the name of your pet? *', '$2y$10$f/I0naWji.nyV0pJYORJg.dnez1PnYeh1Xg7k9abhRRSO1CKMBZrS', '3. Who is your favorite teacher in highschool? *', '$2y$10$DWEHIiVLDal.X5DJVRw7d.cazyT6wKi4qdv8qx2hQaycWDqdysHjC', 'admin', 0),
-('5675-6767', 'Misisipiss', 'Garagesd', '', '', 'male', '2003-02-02', 23, 'Purok 5', 'Baranggay 6', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'test123447', 'instructor@csucc.edu.phs', '$2y$10$a4GU/yYhKfQ/s/e7mHB7r.I8aw0S14XXKPQSusFXVEA6KiJkqKAOu', '1. Who is your bestfriend in elementary? *', '$2y$10$GUquMpzyEnK/j2UtEH6xE.EzN.9AGxVOVRu.a7hiWe7iXgrJWCMO6', '2. What is the name of your pet? *', '$2y$10$iNGku3TpBTktzyXwiTKPjev4B3oVkroZyteYcvpwTxJhb9Ay9lFVW', '3. Who is your favorite teacher in highschool? *', '$2y$10$YEOsUrVLuX7WyNzt3wqjzeb88cWP8wRQQRUAi6CJVNshezh6Fd3zW', 'admin', 0);
+('0001-0001', 'Admin', 'User', '', '', 'male', '1995-01-15', 31, 'Purok 1', 'Barangay 1', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'admin123', 'admin@foodgrab.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '1. Who is your bestfriend in elementary? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2. What is the name of your pet? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3. Who is your favorite teacher in highschool? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'admin', 0),
+('0001-0002', 'Super', 'Admin', '', '', 'male', '1990-06-20', 35, 'Purok 2', 'Barangay 2', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'superadmin123', 'superadmin@foodgrab.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '1. Who is your bestfriend in elementary? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2. What is the name of your pet? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3. Who is your favorite teacher in highschool? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'superadmin', 0),
+('0001-0003', 'Juan', 'Dela Cruz', 'A', '', 'male', '2000-03-10', 25, 'Purok 3', 'Barangay 3', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'consumer1', 'consumer1@foodgrab.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '1. Who is your bestfriend in elementary? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2. What is the name of your pet? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3. Who is your favorite teacher in highschool? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'consumer', 0),
+('0001-0004', 'Maria', 'Santos', 'B', '', 'female', '2001-07-22', 24, 'Purok 4', 'Barangay 4', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'consumer2', 'consumer2@foodgrab.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '1. Who is your bestfriend in elementary? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2. What is the name of your pet? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3. Who is your favorite teacher in highschool? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'consumer', 0),
+('0001-0005', 'Pedro', 'Reyes', 'C', '', 'male', '2002-11-05', 23, 'Purok 5', 'Barangay 5', 'Cabadbaran City', 'Agusan Del Norte', '8605', 'Philippines', 'consumer3', 'consumer3@foodgrab.com', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '1. Who is your bestfriend in elementary? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '2. What is the name of your pet? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', '3. Who is your favorite teacher in highschool? *', '$2y$10$92IXUNpkjO0rOQ5byMi.Ye4oKoEa3Ro9llC/.og/at2.uheWG/igi', 'consumer', 0);
 
 --
 -- Indexes for table `users`
@@ -107,6 +105,17 @@ CREATE TABLE IF NOT EXISTS `restaurants` (
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `restaurants`
+--
+
+INSERT INTO `restaurants` (`id`, `name`, `description`, `address`, `image_path`, `is_active`, `created_at`) VALUES
+(1, 'Jollibee', 'Home of the famous Chickenjoy — crispy, juicy, and loved by every Filipino.', 'P. Burgos St, Cabadbaran City, Agusan Del Norte', NULL, 1, '2026-01-01 08:00:00'),
+(2, 'Chowking', 'Chinese-Filipino fast food — chao fan, siomai, lauriat meals, and halo-halo.', 'National Highway, Cabadbaran City, Agusan Del Norte', NULL, 1, '2026-01-01 08:00:00'),
+(3, 'Mang Inasal', 'The home of chicken inasal with unlimited rice. Grilled to perfection.', 'J.C. Aquino Ave, Butuan City, Agusan Del Norte', NULL, 1, '2026-01-01 08:00:00'),
+(4, 'Greenwich', 'Pizza, pasta, and more — the go-to place for barkada hangouts.', 'Montilla Blvd, Butuan City, Agusan Del Norte', NULL, 1, '2026-01-01 08:00:00'),
+(5, 'Goldilocks', 'Filipino bakeshop and restaurant known for cakes, mamon, and classic Pinoy meals.', 'Langihan Rd, Butuan City, Agusan Del Norte', NULL, 1, '2026-01-01 08:00:00');
+
 -- --------------------------------------------------------
 -- Menu items (per restaurant)
 -- --------------------------------------------------------
@@ -123,6 +132,42 @@ CREATE TABLE IF NOT EXISTS `menu_items` (
   KEY `fk_menu_restaurant` (`restaurant_id`),
   CONSTRAINT `fk_menu_restaurant` FOREIGN KEY (`restaurant_id`) REFERENCES `restaurants` (`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `menu_items`
+--
+
+INSERT INTO `menu_items` (`id`, `restaurant_id`, `name`, `description`, `price`, `image_path`, `is_available`) VALUES
+-- Jollibee (restaurant_id = 1)
+(1, 1, '1-pc Chickenjoy', 'Crispy fried chicken served with rice and gravy.', 89.00, NULL, 1),
+(2, 1, 'Jolly Spaghetti', 'Sweet-style spaghetti with hotdog slices, ground meat, and cheese.', 65.00, NULL, 1),
+(3, 1, 'Yumburger', 'Classic Jollibee hamburger with special dressing.', 45.00, NULL, 1),
+(4, 1, 'Peach Mango Pie', 'Crispy flaky pie filled with peaches and mangoes.', 46.00, NULL, 1),
+(5, 1, 'Palabok Fiesta', 'Rice noodles in shrimp sauce topped with chicharon and egg.', 138.00, NULL, 1),
+-- Chowking (restaurant_id = 2)
+(6, 2, 'Siomai Chao Fan', 'Savory fried rice topped with steamed pork siomai.', 95.00, NULL, 1),
+(7, 2, 'Chinese-Style Fried Chicken', 'Crispy fried chicken with Chinese five-spice flavor.', 99.00, NULL, 1),
+(8, 2, 'Sweet & Sour Pork Lauriat', 'Crispy pork in tangy sweet-and-sour sauce with rice and drink.', 215.00, NULL, 1),
+(9, 2, 'Halo-Halo SuperSangkap', 'Crushed ice with sweet beans, fruits, leche flan, and ube ice cream.', 175.00, NULL, 1),
+(10, 2, 'Beef Wonton Mami', 'Hot noodle soup with beef slices and wontons.', 115.00, NULL, 1),
+-- Mang Inasal (restaurant_id = 3)
+(11, 3, 'Chicken Inasal Paa', 'Grilled chicken leg marinated in local spices, served with unlimited rice.', 149.00, NULL, 1),
+(12, 3, 'Chicken Inasal Pecho', 'Grilled chicken breast, juicy and flavorful with unlimited rice.', 159.00, NULL, 1),
+(13, 3, 'Pork BBQ (2 pcs)', 'Two sticks of smoky sweet grilled pork skewers with rice.', 112.00, NULL, 1),
+(14, 3, 'Extra Creamy Halo-Halo', 'Refreshing shaved ice dessert with sweet toppings and creamy milk.', 76.00, NULL, 1),
+(15, 3, 'Palabok', 'Filipino-style rice noodles in rich savory sauce with toppings.', 99.00, NULL, 1),
+-- Greenwich (restaurant_id = 4)
+(16, 4, 'Hawaiian Overload Pizza', 'Loaded pizza with ham, pineapple, and extra cheese.', 162.00, NULL, 1),
+(17, 4, 'Lasagna Supreme', 'Layers of pasta, rich meat sauce, and melted cheese.', 99.00, NULL, 1),
+(18, 4, 'All-In Overload Pizza', 'Fully loaded pizza with pepperoni, ham, beef, and veggies.', 174.00, NULL, 1),
+(19, 4, 'Winner Wings (4 pcs)', 'Crispy fried chicken wings in your choice of flavor.', 212.00, NULL, 1),
+(20, 4, 'Ham & Cheese Pizzawrap', 'Toasted wrap filled with ham, cheese, and pizza sauce.', 66.00, NULL, 1),
+-- Goldilocks (restaurant_id = 5)
+(21, 5, 'Classic Mamon', 'Soft and fluffy Filipino sponge cake, lightly sweetened.', 35.00, NULL, 1),
+(22, 5, 'Pork Adobo Meal', 'Tender pork braised in soy sauce and vinegar with rice.', 120.00, NULL, 1),
+(23, 5, 'Pancit Bihon Bilao', 'Stir-fried thin rice noodles with vegetables and meat. Serves 5-6.', 350.00, NULL, 1),
+(24, 5, 'Mocha Roll', 'Moist chocolate sponge cake rolled with mocha cream filling.', 280.00, NULL, 1),
+(25, 5, 'Pinoy Spaghetti', 'Sweet Filipino-style spaghetti with hotdogs and cheese.', 85.00, NULL, 1);
 
 -- --------------------------------------------------------
 -- Order status enum and orders table
@@ -278,4 +323,53 @@ CREATE TABLE IF NOT EXISTS `cart_items` (
   KEY `fk_cartitem_menu` (`menu_item_id`),
   CONSTRAINT `fk_cartitem_cart` FOREIGN KEY (`cart_id`) REFERENCES `cart` (`id`) ON DELETE CASCADE,
   CONSTRAINT `fk_cartitem_menu` FOREIGN KEY (`menu_item_id`) REFERENCES `menu_items` (`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Approvals (Admin requests actions; Superadmin reviews)
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `approvals` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `requested_by` varchar(11) NOT NULL COMMENT 'User ID of admin requesting',
+  `action_type` enum('delete_user','delete_restaurant','delete_menu_item','other') NOT NULL DEFAULT 'delete_user',
+  `target_id` varchar(32) NOT NULL COMMENT 'ID of user / restaurant / menu_item',
+  `target_type` enum('user','restaurant','menu_item') NOT NULL DEFAULT 'user',
+  `reason` text DEFAULT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `reviewed_by` varchar(11) DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `review_notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `requested_by` (`requested_by`),
+  KEY `status` (`status`),
+  KEY `created_at` (`created_at`),
+  CONSTRAINT `approvals_requested_by_fk` FOREIGN KEY (`requested_by`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `approvals_reviewed_by_fk` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+-- Admin Creation Requests
+-- --------------------------------------------------------
+CREATE TABLE IF NOT EXISTS `admin_creation_requests` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `requested_by` varchar(11) NOT NULL COMMENT 'User ID of superadmin requesting',
+  `target_username` varchar(50) NOT NULL,
+  `target_email` varchar(100) NOT NULL,
+  `target_role` enum('admin','superadmin') NOT NULL,
+  `target_firstName` varchar(50) NOT NULL,
+  `target_lastName` varchar(50) NOT NULL,
+  `reason` text DEFAULT NULL,
+  `status` enum('pending','approved','rejected') NOT NULL DEFAULT 'pending',
+  `reviewed_by` varchar(11) DEFAULT NULL,
+  `reviewed_at` timestamp NULL DEFAULT NULL,
+  `review_notes` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT NULL ON UPDATE current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `requested_by` (`requested_by`),
+  KEY `status` (`status`),
+  CONSTRAINT `admin_creation_requested_by_fk` FOREIGN KEY (`requested_by`) REFERENCES `users` (`id`) ON DELETE CASCADE,
+  CONSTRAINT `admin_creation_reviewed_by_fk` FOREIGN KEY (`reviewed_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

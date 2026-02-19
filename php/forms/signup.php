@@ -191,7 +191,7 @@
 
                             <div class="form-group">
                                 <label for="secure_answer">Your Answer 1<span style="color: red">*</span>:</label>
-                                <input type="text" id="secure_answer" name="secure_answer" placeholder="Enter your answer">
+                                <input type="password" id="secure_answer" name="secure_answer" placeholder="Enter your answer">
                                 <span class="validation-message" id="secure_answerError"></span>
                             </div>
 
@@ -210,7 +210,7 @@
 
                             <div class="form-group">
                                 <label for="secure_answer2">Your Answer 2<span style="color: red">*</span>:</label>
-                                <input type="text" id="secure_answer2" name="secure_answer2" placeholder="Enter your answer">
+                                <input type="password" id="secure_answer2" name="secure_answer2" placeholder="Enter your answer">
                                 <span class="validation-message" id="secure_answer2Error"></span>
                             </div>
 
@@ -229,7 +229,7 @@
 
                             <div class="form-group">
                                 <label for="secure_answer3">Your Answer 3<span style="color: red">*</span>:</label>
-                                <input type="text" id="secure_answer3" name="secure_answer3" placeholder="Enter your answer">
+                                <input type="password" id="secure_answer3" name="secure_answer3" placeholder="Enter your answer">
                                 <span class="validation-message" id="secure_answer3Error"></span>
                             </div>
                         </div>
@@ -268,7 +268,7 @@
         </div>
 
         <div class="footer-bottom">
-            <p>All rights reserved &copy; 2025</p>
+            <p>All rights reserved &copy; 2026</p>
         </div>
     </footer>
 

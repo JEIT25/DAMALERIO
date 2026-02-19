@@ -131,7 +131,7 @@ endif; ?>>
                 <span id="forgotOtpSentTo" class="forgot-email-sent" style="display: none;"></span>
                 <div id="forgotOtpInputWrap" style="display: none;">
                     <label for="forgot_otp">Enter 6-digit code:</label>
-                    <input type="text" id="forgot_otp" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="000000">
+                    <input type="password" id="forgot_otp" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="000000">
                     <span id="forgotResendHint" class="forgot-resend-hint"></span>
                     <button type="button" id="forgotResendOtpBtn" class="btn-secondary" disabled>Resend OTP (60s)</button>
                     <button type="button" id="forgotVerifyOtpBtn" class="submitBtn">Verify OTP</button>
@@ -144,17 +144,17 @@ endif; ?>>
                 </div>
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label1" for="secure_answer1" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="text" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <input type="password" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
                 </div>
 
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label2" for="secure_answer2" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="text" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <input type="password" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
                 </div>
 
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label3" for="secure_answer3" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="text" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <input type="password" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
                 </div>
 
                 <span id="forgotStep3Msg" class="forgot-msg"></span>
@@ -198,7 +198,7 @@ endif; ?>>
                 <p class="description">We bring the best local flavors right to your door.</p>
             </div>
         </div>
-        <div class="footer-bottom"><p>All rights reserved &copy; 2025</p></div>
+        <div class="footer-bottom"><p>All rights reserved &copy; 2026</p></div>
     </footer>
 
     <script>

@@ -155,7 +155,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     </div>
                     <div class="form-group">
                         <label>Answer 1<span class="required">*</span></label>
-                        <input type="text" name="secure_answer" id="sa1" required>
+                        <input type="password" name="secure_answer" id="sa1" required>
                     </div>
                     <div class="form-group">
                         <label>Question 2<span class="required">*</span></label>
@@ -168,7 +168,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     </div>
                     <div class="form-group">
                         <label>Answer 2<span class="required">*</span></label>
-                        <input type="text" name="secure_answer2" id="sa2" required>
+                        <input type="password" name="secure_answer2" id="sa2" required>
                     </div>
                     <div class="form-group">
                         <label>Question 3<span class="required">*</span></label>
@@ -181,7 +181,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     </div>
                     <div class="form-group">
                         <label>Answer 3<span class="required">*</span></label>
-                        <input type="text" name="secure_answer3" id="sa3" required>
+                        <input type="password" name="secure_answer3" id="sa3" required>
                     </div>
                 </div>
 
@@ -201,7 +201,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.75rem; color: #dc2626;"></i>
                 </div>
                 <h2 style="font-size: 1.5rem; color: #1f2937; margin-bottom: 0.5rem;">Request to Block Consumer</h2>
-                <p style="color: #6b7280; font-size: 0.95rem;">This action will restrict the consumer's access. An admin must approve this request.</p>
+                <p style="color: #6b7280; font-size: 0.95rem;">This action will restrict the consumer's access. A super admin must approve this request.</p>
             </div>
 
             <form id="blockForm" style="width: 100%; text-align: left;">
@@ -267,7 +267,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                                 <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick='editUser(${JSON.stringify(u)})'>
                                     <i class="fa-solid fa-pen-to-square" style="margin-right:0.25rem;"></i> Edit
                                 </button>
-                                ${!isBlocked ? `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--error-color); border-color: var(--error-color);" onclick="openBlockModal('${u.id}')"><i class="fa-solid fa-ban" style="margin-right:0.25rem;"></i> Block</button>` : ''}
+                                ${!isBlocked ? `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--error-color); border-color: var(--error-color);" onclick="openBlockModal('${u.id}')"><i class="fa-solid fa-ban" style="margin-right:0.25rem;"></i>Block</button>` : ''}
                             </td>
                             <td>
                                 <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewPrivileges('consumer', '${escapeHtml(u.username)}')">

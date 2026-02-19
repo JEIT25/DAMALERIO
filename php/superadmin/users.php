@@ -169,7 +169,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                         </div>
                         <div class="form-group">
                             <label>Answer 1</label>
-                            <input type="text" name="secure_answer" id="sa1">
+                            <input type="password" name="secure_answer" id="sa1">
                         </div>
                         <div class="form-group">
                             <label>Question 2</label>
@@ -182,7 +182,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                         </div>
                         <div class="form-group">
                             <label>Answer 2</label>
-                            <input type="text" name="secure_answer2" id="sa2">
+                            <input type="password" name="secure_answer2" id="sa2">
                         </div>
                         <div class="form-group">
                             <label>Question 3</label>
@@ -195,7 +195,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                         </div>
                         <div class="form-group">
                             <label>Answer 3</label>
-                            <input type="text" name="secure_answer3" id="sa3">
+                            <input type="password" name="secure_answer3" id="sa3">
                         </div>
                     </div>
                 </div>

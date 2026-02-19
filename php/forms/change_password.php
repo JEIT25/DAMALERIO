@@ -234,7 +234,7 @@ if ($user) {
     </div>
 <?php if (!$user): ?>
     <footer>
-        <div class="footer-bottom"><p>All rights reserved &copy; 2025</p></div>
+        <div class="footer-bottom"><p>All rights reserved &copy; 2026</p></div>
     </footer>
 <?php endif; ?>
     <script src="<?php echo isset($basePath) ? $basePath : '../../'; ?>js/serve_asset.php?file=change_password.js"></script>

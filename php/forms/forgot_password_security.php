@@ -100,17 +100,17 @@ endif; ?>
             <form method="POST" class="forgot-form">
                 <div class="form-group">
                     <label><?php echo htmlspecialchars($user_questions['secure_quest1']); ?></label>
-                    <input type="text" name="ans1" required placeholder="Your answer">
+                    <input type="password" name="ans1" required placeholder="Your answer">
                 </div>
 
                 <div class="form-group">
                     <label><?php echo htmlspecialchars($user_questions['secure_quest2']); ?></label>
-                    <input type="text" name="ans2" required placeholder="Your answer">
+                    <input type="password" name="ans2" required placeholder="Your answer">
                 </div>
 
                 <div class="form-group">
                     <label><?php echo htmlspecialchars($user_questions['secure_quest3']); ?></label>
-                    <input type="text" name="ans3" required placeholder="Your answer">
+                    <input type="password" name="ans3" required placeholder="Your answer">
                 </div>
 
                 <button type="submit" class="btn-primary">Verify Answers</button>
@@ -122,7 +122,7 @@ endif; ?>
 
     <footer>
         <div class="footer-bottom">
-            <p>All rights reserved &copy; 2025</p>
+            <p>All rights reserved &copy; 2026</p>
         </div>
     </footer>
 </body>
