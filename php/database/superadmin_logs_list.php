@@ -11,7 +11,6 @@ $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $limit = 10;
 $offset = ($page - 1) * $limit;
 
-// Base condition: only look at logins, we'll find the matching logout
 $whereClause = "WHERE l.action = 'login'";
 $types = "";
 $params = [];
@@ -22,8 +21,25 @@ if ($date) {
     $params[] = $date;
 }
 
+$search = trim($_GET['search'] ?? '');
+if ($search) {
+    $searchTerm = "%$search%";
+    $whereClause .= " AND (u.username LIKE ? OR u.firstName LIKE ? OR u.lastName LIKE ?)";
+    $types .= "sss";
+    $params[] = $searchTerm;
+    $params[] = $searchTerm;
+    $params[] = $searchTerm;
+}
+
+$role = trim($_GET['role'] ?? '');
+if ($role) {
+    $whereClause .= " AND u.role = ?";
+    $types .= "s";
+    $params[] = $role;
+}
+
 // Get total count for pagination
-$countSql = "SELECT COUNT(*) as total FROM login_logs l $whereClause";
+$countSql = "SELECT COUNT(*) as total FROM login_logs l LEFT JOIN users u ON l.user_id = u.id $whereClause";
 $stmt = $conn->prepare($countSql);
 if (!empty($params)) {
     $stmt->bind_param($types, ...$params);
@@ -35,7 +51,6 @@ $totalPages = ceil($totalRecords / $limit);
 $stmt->close();
 
 // Get paired logs
-// Subquery finds the *next* logout event after this login
 $sql = "SELECT
             l.id,
             l.user_id,
@@ -57,7 +72,9 @@ $params[] = $offset;
 $types .= "ii";
 
 $stmt = $conn->prepare($sql);
-$stmt->bind_param($types, ...$params);
+if (!empty($params)) {
+    $stmt->bind_param($types, ...$params);
+}
 $stmt->execute();
 $result = $stmt->get_result();
 

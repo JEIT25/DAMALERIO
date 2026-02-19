@@ -115,7 +115,17 @@ if ($isFormSubmission) {
                 logUserAction($user['id'], 'login');
 
                 $base = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/DAMALERIO';
-                $response['redirect'] = $base . '/php/auth/dashboard.php';
+
+                // Role-based redirection
+                if ($user['role'] === 'admin') {
+                    $response['redirect'] = $base . '/php/admin/index.php';
+                }
+                elseif ($user['role'] === 'superadmin') {
+                    $response['redirect'] = $base . '/php/superadmin/index.php';
+                }
+                else {
+                    $response['redirect'] = $base . '/php/auth/dashboard.php';
+                }
             }
             else {
                 handleFailedLogin(false, false, $response, $usernameOrEmail);

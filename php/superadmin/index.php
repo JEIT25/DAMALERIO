@@ -168,26 +168,26 @@ endif; ?>
                         <a href="logs.php" class="small-link" style="font-size: 0.85rem; color: var(--primary-color);">View All</a>
                     </div>
                     <?php if ($logs->num_rows > 0): ?>
-                        <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
+                        <table class="data-table" style="font-size: 0.9rem;">
                             <thead>
-                                <tr style="border-bottom: 2px solid var(--bg-body); text-align: left;">
-                                    <th style="padding: 0.5rem;">Action</th>
-                                    <th style="padding: 0.5rem;">User</th>
-                                    <th style="padding: 0.5rem;">Time</th>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>User</th>
+                                    <th>Time</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php while ($l = $logs->fetch_assoc()): ?>
-                                    <tr style="border-bottom: 1px solid var(--border-color);">
-                                        <td style="padding: 0.5rem;">
+                                    <tr>
+                                        <td>
                                             <span style="color: <?php echo $l['action'] === 'login' ? '#059669' : '#dc2626'; ?>; font-weight: 500;">
                                                 <?php echo ucfirst($l['action']); ?>
                                             </span>
                                         </td>
-                                        <td style="padding: 0.5rem;">
+                                        <td>
                                             <?php echo htmlspecialchars($l['username']); ?>
                                         </td>
-                                        <td style="padding: 0.5rem; color: var(--text-muted); font-size: 0.85rem;">
+                                        <td style="color: var(--text-muted);">
                                             <?php echo date('M j H:i', strtotime($l['log_time'])); ?>
                                         </td>
                                     </tr>
@@ -197,7 +197,7 @@ endif; ?>
                         </table>
                     <?php
 else: ?>
-                        <p class="muted" style="font-size: 0.9rem; font-style: italic;">No logs found.</p>
+                        <div class="empty-state" style="padding: 1rem;"><p class="muted" style="margin:0;">No logs found.</p></div>
                     <?php
 endif; ?>
                 </div>

@@ -29,12 +29,14 @@ $showCart = ($navUserRole === 'consumer');
                 <i class="fa-solid fa-cart-shopping" aria-hidden="true"></i>
                 <span class="nav-cart-count" id="navbarCartCount">0</span>
             </a>
-            <?php endif; ?>
+            <?php
+endif; ?>
             <?php if (!empty($showSidebarToggle)): ?>
             <button type="button" class="sidebar-toggle" id="sidebarToggle" aria-label="Open menu" aria-expanded="false">
                 <i class="fa-solid fa-bars" aria-hidden="true"></i>
             </button>
-            <?php endif; ?>
+            <?php
+endif; ?>
             <form action="<?php echo htmlspecialchars($baseUrl); ?>/php/auth/dashboard.php" method="POST" style="display:inline;">
                 <input type="hidden" name="logout_action" value="1">
                 <button type="submit" class="nav-link"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
@@ -45,22 +47,24 @@ $showCart = ($navUserRole === 'consumer');
 <?php if ($showCart): ?>
 <script>
 (function() {
-    var key = 'foodgrab_cart';
     function updateNavCartBadge() {
         var el = document.getElementById('navbarCartCount');
         if (!el) return;
-        try {
-            var raw = localStorage.getItem(key);
-            var arr = raw ? JSON.parse(raw) : [];
-            var count = 0;
-            if (Array.isArray(arr)) arr.forEach(function(i) { count += (i.quantity || 0); });
-            el.textContent = count;
-            el.classList.toggle('nav-cart-count--zero', count === 0);
-        } catch (e) { el.textContent = '0'; el.classList.add('nav-cart-count--zero'); }
+        fetch('<?php echo htmlspecialchars($baseUrl); ?>/php/database/cart_get.php')
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                var count = 0;
+                if (data.success && data.items) {
+                    data.items.forEach(function(i) { count += (i.quantity || 0); });
+                }
+                el.textContent = count;
+                el.classList.toggle('nav-cart-count--zero', count === 0);
+            })
+            .catch(function() { el.textContent = '0'; el.classList.add('nav-cart-count--zero'); });
     }
     updateNavCartBadge();
-    window.addEventListener('storage', updateNavCartBadge);
     window.updateNavCartBadge = updateNavCartBadge;
 })();
 </script>
-<?php endif; ?>
+<?php
+endif; ?>

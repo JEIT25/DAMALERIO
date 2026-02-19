@@ -3,7 +3,15 @@ session_start();
 require_once __DIR__ . '/../includes/auth.php';
 
 if (isset($_SESSION['user']) && !empty($_SESSION['user'])) {
-    header('Location: ' . getBaseUrl() . '/php/auth/dashboard.php');
+    $role = $_SESSION['user']['role'] ?? 'consumer';
+    $redirect = getBaseUrl() . '/php/auth/dashboard.php';
+    if ($role === 'admin') {
+        $redirect = getBaseUrl() . '/php/admin/index.php';
+    }
+    elseif ($role === 'superadmin') {
+        $redirect = getBaseUrl() . '/php/superadmin/index.php';
+    }
+    header('Location: ' . $redirect);
     exit;
 }
 

@@ -195,20 +195,50 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
 
     <!-- Block Request Modal -->
     <div id="blockModal" class="modal2">
-        <div class="modal2-content">
-            <h2>Request Block</h2>
-            <p>Admin approval required to block consumers.</p>
+        <div class="modal2-content" style="max-width: 450px;">
+            <div style="text-align: center; margin-bottom: 1.5rem;">
+                <div style="width: 60px; height: 60px; background: #fee2e2; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                    <i class="fa-solid fa-triangle-exclamation" style="font-size: 1.75rem; color: #dc2626;"></i>
+                </div>
+                <h2 style="font-size: 1.5rem; color: #1f2937; margin-bottom: 0.5rem;">Request to Block Consumer</h2>
+                <p style="color: #6b7280; font-size: 0.95rem;">This action will restrict the consumer's access. An admin must approve this request.</p>
+            </div>
+
             <form id="blockForm" style="width: 100%; text-align: left;">
                 <input type="hidden" name="target_id" id="targetId">
                 <div class="form-group">
-                    <label>Reason for blocking</label>
-                    <textarea name="reason" id="blockReason" rows="3" required></textarea>
+                    <label style="font-weight: 600; color: #374151; margin-bottom: 0.5rem; display: block;">Reason for blocking <span class="required">*</span></label>
+                    <textarea name="reason" id="blockReason" rows="4" required placeholder="Please provide a valid reason..." style="width: 100%; padding: 0.75rem; border: 1px solid #d1d5db; border-radius: 0.5rem; font-family: inherit; resize: vertical;"></textarea>
                 </div>
-                <div style="text-align: right; margin-top: 1rem;">
-                    <button type="button" onclick="document.getElementById('blockModal').style.display='none'" class="btn-secondary">Cancel</button>
-                    <button type="submit" class="btn-primary">Submit Request</button>
+                <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
+                    <button type="button" onclick="document.getElementById('blockModal').style.display='none'" class="btn-secondary" style="flex: 1; justify-content: center;">Cancel</button>
+                    <button type="submit" class="btn-primary" style="background: #dc2626; flex: 1; justify-content: center; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
+                        Submit Request
+                    </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Success/Error Modal -->
+    <div id="messageModal" class="modal2" style="z-index: 210;">
+        <div class="modal2-content" style="max-width: 400px; text-align: center; padding: 2rem;">
+            <div id="msgIconContainer" style="width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <i id="msgIcon" class="fa-solid" style="font-size: 1.75rem;"></i>
+            </div>
+            <h2 id="msgTitle" style="font-size: 1.5rem; margin-bottom: 0.5rem;"></h2>
+            <p id="msgBody" style="color: #6b7280; margin-bottom: 1.5rem;"></p>
+            <button onclick="closeMessageModal()" class="btn-primary" style="width: 100%; justify-content: center;">Okay</button>
+        </div>
+    </div>
+
+    <!-- Privileges Modal -->
+    <div id="privModal" class="modal2">
+        <div class="modal2-content">
+            <h2>User Privileges</h2>
+            <p id="privUserName" style="font-weight: bold; margin-bottom: 1rem;"></p>
+            <div id="privContent" style="width: 100%;"></div>
+            <button onclick="document.getElementById('privModal').style.display='none'" class="btn-primary" style="margin-top: 1rem;">Close</button>
         </div>
     </div>
 
@@ -220,23 +250,57 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) return;
-                    let html = '<table class="users-table"><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th>Actions</th></tr></thead><tbody>';
+                    if (data.consumers.length === 0) {
+                        document.getElementById('usersTableContainer').innerHTML = '<div class="empty-state"><p>No consumers found.</p></div>';
+                        return;
+                    }
+
+                    let html = '<table class="data-table"><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th>Actions</th><th>Privileges</th></tr></thead><tbody>';
                     data.consumers.forEach(u => {
                         const isBlocked = u.is_blocked == 1;
                         html += `<tr class="${isBlocked ? 'blocked-row' : ''}">
                             <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
                             <td>${escapeHtml(u.username)}</td>
                             <td>${escapeHtml(u.email)}</td>
-                            <td>${isBlocked ? '<span style="color:red">Blocked</span>' : '<span style="color:green">Active</span>'}</td>
+                            <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
                             <td>
-                                <button class="action-btn btn-edit" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
-                                ${!isBlocked ? `<button class="action-btn btn-block" onclick="openBlockModal('${u.id}')">Request Block</button>` : ''}
+                                <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick='editUser(${JSON.stringify(u)})'>
+                                    <i class="fa-solid fa-pen-to-square" style="margin-right:0.25rem;"></i> Edit
+                                </button>
+                                ${!isBlocked ? `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--error-color); border-color: var(--error-color);" onclick="openBlockModal('${u.id}')"><i class="fa-solid fa-ban" style="margin-right:0.25rem;"></i> Block</button>` : ''}
+                            </td>
+                            <td>
+                                <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewPrivileges('consumer', '${escapeHtml(u.username)}')">
+                                    <i class="fa-solid fa-eye" style="margin-right:0.25rem;"></i> View
+                                </button>
                             </td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
                     document.getElementById('usersTableContainer').innerHTML = html;
                 });
+        }
+
+        const privileges = {
+            'consumer': ['Place Orders', 'View Order History', 'View Profile Information', 'Change Account Password', 'Add Favorites']
+        };
+
+        function viewPrivileges(role, name) {
+            document.getElementById('privUserName').textContent = name + ' (' + role + ')';
+            const privs = privileges[role] || [];
+
+            const listHtml = privs.map((p, index) => `
+                <div style="display:flex; align-items:center; gap:0.75rem; padding:0.25rem 0; text-align:left;">
+                    <span style="font-weight:700; color:var(--primary-color); min-width:1.5rem; text-align:right;">${index + 1}.</span>
+                    <span>${p}</span>
+                </div>
+            `).join('');
+
+            const contentDiv = document.getElementById('privContent');
+            contentDiv.innerHTML = `<div style="display:inline-block; text-align:left;">${listHtml}</div>`;
+            contentDiv.style.display = 'block';
+            contentDiv.style.textAlign = 'center';
+            document.getElementById('privModal').style.display = 'flex';
         }
 
         function calculateAge() {
@@ -301,14 +365,53 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
             fetch(api + '/admin_request_block.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(d => {
+                    document.getElementById('blockModal').style.display = 'none';
                     if (d.success) {
-                        document.getElementById('blockModal').style.display = 'none';
-                        alert('Request submitted.');
+                        showMessageModal('success', 'Request Submitted', 'The block request has been sent for approval.');
                     } else {
-                        alert(d.error);
+                        showMessageModal('error', 'Request Failed', d.error || 'An error occurred.');
                     }
+                })
+                .catch(() => {
+                    document.getElementById('blockModal').style.display = 'none';
+                    showMessageModal('error', 'Error', 'A network error occurred.');
                 });
         };
+
+        function showMessageModal(type, title, message) {
+            const modal = document.getElementById('messageModal');
+            const iconContainer = document.getElementById('msgIconContainer');
+            const icon = document.getElementById('msgIcon');
+            const titleEl = document.getElementById('msgTitle');
+            const bodyEl = document.getElementById('msgBody');
+
+            titleEl.textContent = title;
+            bodyEl.textContent = message;
+
+            if (type === 'success') {
+                iconContainer.style.background = '#dcfce7';
+                icon.className = 'fa-solid fa-check';
+                icon.style.color = '#16a34a';
+                titleEl.style.color = '#16a34a';
+            } else {
+                iconContainer.style.background = '#fee2e2';
+                icon.className = 'fa-solid fa-xmark';
+                icon.style.color = '#dc2626';
+                titleEl.style.color = '#dc2626';
+            }
+
+            modal.style.display = 'flex';
+        }
+
+        function closeMessageModal() {
+            document.getElementById('messageModal').style.display = 'none';
+        }
+
+        function openBlockModal(id) {
+            document.getElementById('targetId').value = id;
+            document.getElementById('blockReason').value = '';
+            document.getElementById('blockModal').style.display = 'flex';
+        }
 
         function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }
 

@@ -49,30 +49,48 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     const totalPages = data.pagination?.total_pages || 1;
 
                     if (!data.orders.length) {
-                        document.getElementById('ordersTable').innerHTML = '<div class="empty-state"><p>No orders found.</p></div>';
+                        document.getElementById('ordersTable').innerHTML = `
+                            <div class="empty-state" style="padding: 3rem; text-align: center; border: 2px dashed var(--border-light); border-radius: var(--radius-lg);">
+                                <p style="color: var(--text-muted); margin: 0;">No orders found.</p>
+                            </div>`;
                         return;
                     }
 
-                    let html = '<table class="orders-table"><thead><tr><th>ID</th><th>Restaurant</th><th>User ID</th><th>Total</th><th>Status</th><th>Date</th><th>Update</th></tr></thead><tbody>';
-                    data.orders.forEach(o => {
-                        const sc = o.status === 'delivered' ? 'status-ok' : o.status === 'cancelled' ? 'status-cancel' : 'status-pending';
+                    let html = '<table class="orders-table" style="width:100%; border-collapse:collapse;"><thead>' +
+                        '<tr style="border-bottom: 2px solid var(--bg-body); text-align: left; color: var(--text-muted);">' +
+                        '<th style="padding: 1rem;">ID</th><th style="padding: 1rem;">Restaurant</th><th style="padding: 1rem;">Customer</th><th style="padding: 1rem;">Total</th><th style="padding: 1rem;">Status</th><th style="padding: 1rem;">Date</th><th style="padding: 1rem;">Update</th></tr></thead><tbody>';
 
-                        html += `<tr>
-                            <td>#${o.id}</td>
-                            <td>${escapeHtml(o.restaurant_name)}</td>
-                            <td>${escapeHtml(o.user_id)}</td>
-                            <td style="font-weight:600">₱${parseFloat(o.total_amount).toFixed(2)}</td>
-                            <td><span class="status-badge ${sc}">${o.status}</span></td>
-                            <td>${new Date(o.created_at).toLocaleString()}</td>
-                            <td><select class="status-select input-field" style="padding:0.25rem; font-size:0.85rem;" data-order-id="${o.id}">${statuses.map(s => '<option value="'+s+'"'+(s===o.status?' selected':'')+'>'+s+'</option>').join('')}</select></td>
+                    data.orders.forEach(o => {
+                        const sc = o.status === 'delivered' ? 'status-ok' : o.status === 'cancelled' ? 'status-trash' : 'status-pending';
+                        const dateParams = { month: 'short', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', hour12: true };
+                        const formattedDate = new Date(o.created_at).toLocaleString('en-US', dateParams);
+
+                        html += `<tr style="border-bottom: 1px solid var(--border-color);">
+                            <td style="padding: 1rem; font-family: monospace; font-weight: 600; color: var(--primary-color);">#${o.id}</td>
+                            <td style="padding: 1rem; font-weight: 500;">${escapeHtml(o.restaurant_name)}</td>
+                            <td style="padding: 1rem; color: var(--text-muted);">User #${escapeHtml(o.user_id)}</td>
+                            <td style="padding: 1rem; font-weight: 700;">₱${parseFloat(o.total_amount).toFixed(2)}</td>
+                            <td style="padding: 1rem;"><span class="status-badge no-dot ${sc}">${o.status}</span></td>
+                            <td style="padding: 1rem; color: var(--text-muted); font-size: 0.9rem;">${formattedDate}</td>
+                            <td style="padding: 1rem;">
+                                <select class="status-select input-field" style="padding: 0.35rem 0.75rem; font-size: 0.9rem; border-radius: 6px; border: 1px solid var(--border-medium); cursor: pointer;" data-order-id="${o.id}">
+                                    ${statuses.map(s => '<option value="'+s+'"'+(s===o.status?' selected':'')+'>'+s.charAt(0).toUpperCase() + s.slice(1).replace(/_/g, ' ')+'</option>').join('')}
+                                </select>
+                            </td>
                         </tr>`;
                     });
                     html += '</tbody></table>';
 
-                     html += `<div class="pagination-controls" style="margin-top:1rem; display:flex; justify-content:flex-end; gap:0.5rem;">
-                        <button class="btn-secondary" onclick="loadOrders(currentPage-1)" ${currentPage<=1?'disabled':''}>Previous</button>
-                        <span style="align-self:center;">Page ${currentPage} of ${totalPages}</span>
-                        <button class="btn-secondary" onclick="loadOrders(currentPage+1)" ${currentPage>=totalPages?'disabled':''}>Next</button>
+                     html += `<div class="pagination-controls" style="display: flex; justify-content: space-between; align-items: center; margin-top: 1.5rem;">
+                        <span class="pagination-info" style="color: var(--text-muted); font-size: 0.9rem;">Page <strong>${currentPage}</strong> of <strong>${totalPages}</strong></span>
+                        <div style="display:flex; gap:0.5rem;">
+                            <button class="btn-secondary" onclick="loadOrders(currentPage-1)" ${currentPage<=1?'disabled':''} style="display: flex; align-items: center; gap: 0.5rem;">
+                                <i class="fa-solid fa-chevron-left"></i> Previous
+                            </button>
+                            <button class="btn-secondary" onclick="loadOrders(currentPage+1)" ${currentPage>=totalPages?'disabled':''} style="display: flex; align-items: center; gap: 0.5rem;">
+                                Next <i class="fa-solid fa-chevron-right"></i>
+                            </button>
+                        </div>
                     </div>`;
 
                     document.getElementById('ordersTable').innerHTML = html;
@@ -86,10 +104,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                                 .then(r => r.json())
                                 .then(d => {
                                     if (d.success) {
-                                        const row = sel.closest('tr');
-                                        const badge = row.querySelector('.status-badge');
-                                        badge.textContent = sel.value;
-                                        badge.className = 'status-badge ' + (sel.value === 'delivered' ? 'status-ok' : sel.value === 'cancelled' ? 'status-cancel' : 'status-pending');
+                                        loadOrders(currentPage); // Reload to update status badge correctly
                                     }
                                 });
                         });

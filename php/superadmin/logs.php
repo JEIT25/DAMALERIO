@@ -30,16 +30,31 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         <main class="dashboard-main">
             <h1 class="page-title">Login Logs</h1>
 
-            <div class="filters">
-                <input type="date" id="filterDate" class="input-field" placeholder="Filter by Date" onchange="loadLogs(1)">
+            <div class="filters" style="flex-wrap: wrap;">
+                <input type="text" id="filterSearch" class="input-field" placeholder="Search by name or username" style="flex: 1; min-width: 200px;" onkeyup="debounceLoadLogs()">
+
+                <div class="select-wrapper" style="width: 150px;">
+                    <select id="filterRole" class="input-field" onchange="loadLogs(1)">
+                        <option value="">All Roles</option>
+                        <option value="superadmin">Superadmin</option>
+                        <option value="admin">Admin</option>
+                        <option value="consumer">Consumer</option>
+                    </select>
+                </div>
+
+                <input type="date" id="filterDate" class="input-field" style="width: auto;" onchange="loadLogs(1)">
+
+                <button class="btn-secondary" onclick="resetFilters()" style="padding: 0.5rem 1rem;">Reset</button>
             </div>
 
             <div id="logsTableContainer">Loading...</div>
 
-            <div class="pagination-controls" style="margin-top: 1rem; display: flex; justify-content: flex-end; gap: 0.5rem; align-items: center;">
-                <button id="prevBtn" onclick="changePage(-1)" class="btn-secondary" style="padding: 0.5rem 1rem;" disabled>Previous</button>
-                <span id="pageInfo">Page 1 of 1</span>
-                <button id="nextBtn" onclick="changePage(1)" class="btn-secondary" style="padding: 0.5rem 1rem;" disabled>Next</button>
+            <div class="pagination-controls">
+                <span id="pageInfo" class="pagination-info">Page 1 of 1</span>
+                <div style="display: flex; gap: 0.5rem;">
+                    <button id="prevBtn" onclick="changePage(-1)" class="btn-secondary" disabled>Previous</button>
+                    <button id="nextBtn" onclick="changePage(1)" class="btn-secondary" disabled>Next</button>
+                </div>
             </div>
         </main>
         <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
@@ -49,13 +64,20 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         const api = '../../php/database';
         let currentPage = 1;
         let totalPages = 1;
+        let debounceTimer;
+
+        function debounceLoadLogs() {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(() => loadLogs(1), 300);
+        }
 
         function loadLogs(page = 1) {
             currentPage = page;
             const date = document.getElementById('filterDate').value;
-            // Action filter removed as we now only show paired sessions (started by login)
+            const search = document.getElementById('filterSearch').value;
+            const role = document.getElementById('filterRole').value;
 
-            const params = new URLSearchParams({ date, page });
+            const params = new URLSearchParams({ date, search, role, page });
 
             document.getElementById('logsTableContainer').innerHTML = '<p class="muted">Loading...</p>';
 
@@ -68,11 +90,11 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     updatePaginationUI();
 
                     if (data.logs.length === 0) {
-                        document.getElementById('logsTableContainer').innerHTML = '<p class="muted">No logs found.</p>';
+                        document.getElementById('logsTableContainer').innerHTML = '<div class="empty-state"><p>No logs found.</p></div>';
                         return;
                     }
 
-                    let html = '<table class="logs-table"><thead><tr><th>User</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Duration</th></tr></thead><tbody>';
+                    let html = '<table class="data-table"><thead><tr><th>User</th><th>Role</th><th>Login Time</th><th>Logout Time</th><th>Duration</th></tr></thead><tbody>';
                     data.logs.forEach(l => {
                         const loginDate = new Date(l.login_time);
                         const logoutDate = l.logout_time ? new Date(l.logout_time) : null;
@@ -89,12 +111,16 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                             duration = `${hrs}h ${mins}m`;
                         }
 
+                        let roleClass = 'role-consumer';
+                        if (l.role === 'admin') roleClass = 'role-admin';
+                        if (l.role === 'superadmin') roleClass = 'role-superadmin';
+
                         html += `<tr>
                             <td>
-                                <div style="font-weight:600">${escapeHtml(l.firstName + ' ' + l.lastName)}</div>
-                                <div class="muted" style="font-size:0.85em">@${escapeHtml(l.username)}</div>
+                                <span class="table-primary-text">${escapeHtml(l.firstName + ' ' + l.lastName)}</span>
+                                <span class="table-secondary-text">@${escapeHtml(l.username)}</span>
                             </td>
-                            <td><span class="status-badge">${l.role}</span></td>
+                            <td><span class="status-badge no-dot ${roleClass}">${l.role}</span></td>
                             <td>${fmtLogin}</td>
                             <td>${fmtLogout}</td>
                             <td>${duration}</td>
@@ -103,6 +129,13 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                     html += '</tbody></table>';
                     document.getElementById('logsTableContainer').innerHTML = html;
                 });
+        }
+
+        function resetFilters() {
+            document.getElementById('filterSearch').value = '';
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterDate').value = '';
+            loadLogs(1);
         }
 
         function changePage(delta) {

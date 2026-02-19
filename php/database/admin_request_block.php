@@ -16,6 +16,19 @@ if (!$target_id || !$reason) {
 
 $requester_id = $_SESSION['user']['id'];
 
+// Check for existing pending request for this target
+$check = $conn->prepare("SELECT id FROM user_block_requests WHERE target_id = ? AND status = 'pending'");
+$check->bind_param('s', $target_id);
+$check->execute();
+$existing = $check->get_result();
+if ($existing->num_rows > 0) {
+    echo json_encode(['success' => false, 'error' => 'A pending block request already exists for this user.']);
+    $check->close();
+    $conn->close();
+    exit;
+}
+$check->close();
+
 // Insert request
 $stmt = $conn->prepare("INSERT INTO user_block_requests (requester_id, target_id, reason, status) VALUES (?, ?, ?, 'pending')");
 $stmt->bind_param('sss', $requester_id, $target_id, $reason);

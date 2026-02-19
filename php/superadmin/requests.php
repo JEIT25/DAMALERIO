@@ -47,10 +47,10 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(data => {
                     if (!data.success) return;
                     if (data.requests.length === 0) {
-                        document.getElementById('requestsTableContainer').innerHTML = '<p class="muted">No requests.</p>';
+                        document.getElementById('requestsTableContainer').innerHTML = '<div class="empty-state"><p>No pending requests.</p></div>';
                         return;
                     }
-                    let html = '<table class="requests-table"><thead><tr><th>Requester (Admin)</th><th>Target (Consumer)</th><th>Reason</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+                    let html = '<table class="data-table"><thead><tr><th>Requester (Admin)</th><th>Target (Consumer)</th><th>Reason</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>';
                     data.requests.forEach(r => {
                         html += `<tr>
                             <td>${escapeHtml(r.r_first + ' ' + r.r_last)}</td>
@@ -61,12 +61,14 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                             <td>`;
 
                         if (r.status === 'pending') {
-                            html += `<div class="action-container">
-                                <button class="btn-approve" onclick="handleRequest(${r.id}, 'approve')">Approve (Block)</button>
-                                <button class="btn-reject" onclick="handleRequest(${r.id}, 'reject')">Reject</button>
+                            html += `<div class="action-container" style="display:flex; gap:0.5rem;">
+                                <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background-color: var(--error-color);" onclick="handleRequest(${r.id}, 'approve')">Block</button>
+                                <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="handleRequest(${r.id}, 'reject')">Reject</button>
                             </div>`;
                         } else {
-                            html += `<span class="muted">${r.status === 'approved' ? 'Processed' : 'Closed'}</span>`;
+                            const label = r.status === 'approved' ? 'Approved' : 'Rejected';
+                            const color = r.status === 'approved' ? '#dc2626' : '#6b7280';
+                            html += `<span style="font-weight:600; color:${color};">${label}</span>`;
                         }
 
                         html += `</td></tr>`;

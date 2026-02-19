@@ -213,7 +213,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         <div class="modal2-content">
             <h2>User Privileges</h2>
             <p id="privUserName" style="font-weight: bold; margin-bottom: 1rem;"></p>
-            <div id="privContent" style="text-align: left; width: 100%;"></div>
+            <div id="privContent" style="width: 100%;"></div>
             <button onclick="document.getElementById('privModal').style.display='none'" class="btn-primary" style="margin-top: 1rem;">Close</button>
         </div>
     </div>
@@ -227,25 +227,29 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) return;
-                    let html = '<table class="users-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th><th>Privileges</th></tr></thead><tbody>';
+                    let html = '<table class="data-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th><th>Privileges</th></tr></thead><tbody>';
                     data.users.forEach(u => {
                         const isBlocked = u.is_blocked == 1;
                         const isSelf = u.id === currentUserId;
                         const rowClass = isBlocked ? 'blocked-row' : '';
 
+                        let roleClass = 'role-consumer';
+                        if (u.role === 'admin') roleClass = 'role-admin';
+                        if (u.role === 'superadmin') roleClass = 'role-superadmin';
+
                         html += `<tr class="${rowClass}">
                             <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
                             <td>${escapeHtml(u.username)}</td>
-                            <td><span class="status-badge">${u.role}</span></td>
-                            <td>${isBlocked ? '<span style="color:red">Blocked</span>' : '<span style="color:green">Active</span>'}</td>
+                            <td><span class="status-badge no-dot ${roleClass}">${u.role}</span></td>
+                            <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
                             <td>
-                                <button class="action-btn btn-edit" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
+                                <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
                                 ${!isSelf ? (isBlocked ?
-                                    `<button class="action-btn btn-unblock" onclick="blockUser('${u.id}', 'unblock')">Unblock</button>` :
-                                    `<button class="action-btn btn-block" onclick="blockUser('${u.id}', 'block')">Block</button>`) : ''}
+                                    `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="blockUser('${u.id}', 'unblock')">Unblock</button>` :
+                                    `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--error-color); border-color: var(--error-color);" onclick="blockUser('${u.id}', 'block')">Block</button>`) : ''}
                             </td>
                             <td>
-                                <button class="action-btn btn-priv" onclick="viewPrivileges('${u.role}', '${escapeHtml(u.username)}')">View Privileges</button>
+                                <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="viewPrivileges('${u.role}', '${escapeHtml(u.username)}')">View</button>
                             </td>
                         </tr>`;
                     });
@@ -342,15 +346,26 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         };
 
         const privileges = {
-            'superadmin': ['Full Access', 'Manage Users & Roles', 'View Audit Logs', 'Approve Block Requests', 'Manage System Settings'],
-            'admin': ['Manage Orders', 'Manage Restaurants & Menus', 'Request User Blocks', 'View Consumer Data'],
-            'consumer': ['Place Orders', 'View Order History', 'Manage Profile', 'Add Favorites']
+            'superadmin': ['Full Access', 'Manage Users & Roles', 'Approve or Reject Consumer Block Requests from Admin', 'Block Users', 'Manage Stores', 'Manage Menu Items', 'Manage Orders', 'View Login Logs'],
+            'admin': ['Manage Orders', 'Manage Stores', 'Manage Menu Items', 'Request Consumer Account Blocks', 'Manage Consumer Accounts'],
+            'consumer': ['Place Orders', 'View Order History', 'View Profile Information', 'Change Account Password', 'Add Favorites']
         };
 
         function viewPrivileges(role, name) {
             document.getElementById('privUserName').textContent = name + ' (' + role + ')';
             const privs = privileges[role] || [];
-            document.getElementById('privContent').innerHTML = '<ul>' + privs.map(p => `<li>${p}</li>`).join('') + '</ul>';
+
+            const listHtml = privs.map((p, index) => `
+                <div style="display:flex; align-items:center; gap:0.75rem; padding:0.25rem 0; text-align:left;">
+                    <span style="font-weight:700; color:var(--primary-color); min-width:1.5rem; text-align:right;">${index + 1}.</span>
+                    <span>${p}</span>
+                </div>
+            `).join('');
+
+            const contentDiv = document.getElementById('privContent');
+            contentDiv.innerHTML = `<div style="display:inline-block; text-align:left;">${listHtml}</div>`;
+            contentDiv.style.display = 'block';
+            contentDiv.style.textAlign = 'center';
             document.getElementById('privModal').style.display = 'flex';
         }
 
