@@ -388,11 +388,16 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         sendOtpBtn.onclick = function () {
-            step2Msg.textContent = "";
+            sendOtpBtn.disabled = true;
+            var originalText = sendOtpBtn.textContent;
+            sendOtpBtn.textContent = "Sending...";
+
             var fd = new FormData(); fd.append("action", "send_otp");
             fetch(window.FORGOT_PASSWORD_API, { method: "POST", body: fd })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = originalText;
                     if (data.status === "success" || data.status === "existing_otp") {
                         // Hide send button and hint
                         sendOtpBtn.style.display = "none";
@@ -430,7 +435,45 @@ document.addEventListener('DOMContentLoaded', () => {
                 .catch(function () { step2Msg.textContent = "Network error."; step2Msg.style.color = "#c00"; });
         };
 
-        // ... (resendOtpBtn logic roughly same, but updates step2Msg) ...
+        if (resendOtpBtn) {
+            resendOtpBtn.onclick = function () {
+                step2Msg.textContent = "";
+                resendOtpBtn.disabled = true;
+                resendOtpBtn.textContent = "Sending...";
+
+                var fd = new FormData(); fd.append("action", "send_otp");
+                fetch(window.FORGOT_PASSWORD_API, { method: "POST", body: fd })
+                    .then(function (r) { return r.json(); })
+                    .then(function (data) {
+                        if (data.status === "success" || data.status === "existing_otp") {
+                            // Timer logic
+                            var sec = data.remaining_seconds || 60;
+                            resendOtpBtn.disabled = true;
+                            resendOtpBtn.textContent = "Resend OTP (" + sec + "s)";
+                            clearResendTimer();
+                            resendCountdown = setInterval(function () {
+                                sec--;
+                                if (sec <= 0) { clearResendTimer(); return; }
+                                resendOtpBtn.textContent = "Resend OTP (" + sec + "s)";
+                            }, 1000);
+
+                            step2Msg.textContent = data.status === "success" ? "New OTP sent." : "Check your email for the existing OTP.";
+                            step2Msg.style.color = data.status === "success" ? "#0a0" : "#c00";
+                        } else {
+                            resendOtpBtn.disabled = false;
+                            resendOtpBtn.textContent = "Resend OTP";
+                            step2Msg.textContent = data.message || "Could not resend OTP.";
+                            step2Msg.style.color = "#c00";
+                        }
+                    })
+                    .catch(function () {
+                        resendOtpBtn.disabled = false;
+                        resendOtpBtn.textContent = "Resend OTP";
+                        step2Msg.textContent = "Network error.";
+                        step2Msg.style.color = "#c00";
+                    });
+            };
+        }
 
         if (verifyOtpBtn) verifyOtpBtn.onclick = function () {
             var otp = (forgotOtpInput && forgotOtpInput.value || "").trim();

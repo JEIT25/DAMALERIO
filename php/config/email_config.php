@@ -11,7 +11,7 @@ function getEmailConfig()
         'mailjet' => [
             'api_key' => 'e324fa9aab609ddbf62952a7bc5e822e',
             'api_secret' => '56f145204ff4cd591e9838987bb037a9',
-            'sender_email' => 'jerold.amora@csucc.edu.ph',
+            'sender_email' => 'nikko.damalerio@csucc.edu.ph',
             'sender_name' => 'FoodGrab'
         ]
     ];
@@ -111,8 +111,7 @@ function sendViaMailjet($to, $otp, $config)
 
     if ($http_code === 200) {
         return true;
-    }
-    else {
+    } else {
         error_log("Mailjet API Error: HTTP $http_code. Response: $response. Curl Error: $curl_error");
         return false;
     }
