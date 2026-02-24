@@ -70,7 +70,7 @@ $icon = $roleIcon[$userRole] ?? 'fa-user';
         <?php if ($userRole === 'superadmin'): ?>
             <a href="<?php echo $baseUrl; ?>/php/superadmin/index.php" class="<?php echo isActive('superadmin_dashboard', $currentPage); ?>"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             <a href="<?php echo $baseUrl; ?>/php/superadmin/users.php" class="<?php echo isActive('superadmin_users', $currentPage); ?>"><i class="fa-solid fa-users"></i> Users & Roles</a>
-            <a href="<?php echo $baseUrl; ?>/php/superadmin/requests.php" class="<?php echo isActive('superadmin_requests', $currentPage); ?>"><i class="fa-solid fa-user-shield"></i> Block Requests</a>
+            <a href="<?php echo $baseUrl; ?>/php/superadmin/requests.php" class="<?php echo isActive('superadmin_requests', $currentPage); ?>"><i class="fa-solid fa-user-shield"></i> Requests</a>
             <a href="<?php echo $baseUrl; ?>/php/superadmin/logs.php" class="<?php echo isActive('superadmin_logs', $currentPage); ?>"><i class="fa-solid fa-list"></i> Login Logs</a>
 
 
@@ -86,7 +86,7 @@ $icon = $roleIcon[$userRole] ?? 'fa-user';
 elseif ($userRole === 'admin'): ?>
             <a href="<?php echo $baseUrl; ?>/php/admin/index.php" class="<?php echo isActive('admin_dashboard', $currentPage); ?>"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             <a href="<?php echo $baseUrl; ?>/php/admin/consumers.php" class="<?php echo isActive('admin_consumers', $currentPage); ?>"><i class="fa-solid fa-users"></i> Manage Consumers</a>
-            <a href="<?php echo $baseUrl; ?>/php/admin/admin_requests.php" class="<?php echo isActive('admin_requests', $currentPage); ?>"><i class="fa-solid fa-file-contract"></i> My Requests</a>
+            <a href="<?php echo $baseUrl; ?>/php/admin/admin_requests.php" class="<?php echo isActive('admin_requests', $currentPage); ?>"><i class="fa-solid fa-file-contract"></i> Requests</a>
             <a href="<?php echo $baseUrl; ?>/php/admin/orders.php" class="<?php echo isActive('admin_orders', $currentPage); ?>"><i class="fa-solid fa-receipt"></i> Manage Orders</a>
             <a href="<?php echo $baseUrl; ?>/php/admin/restaurants.php" class="<?php echo isActive('admin_restaurants', $currentPage); ?>"><i class="fa-solid fa-store"></i> Manage Stores</a>
             <a href="<?php echo $baseUrl; ?>/php/admin/menu.php" class="<?php echo isActive('admin_menu', $currentPage); ?>"><i class="fa-solid fa-utensils"></i> Manage Menu Items</a>

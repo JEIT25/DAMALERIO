@@ -37,10 +37,9 @@ endif; ?>
             </button>
             <?php
 endif; ?>
-            <form action="<?php echo htmlspecialchars($baseUrl); ?>/php/auth/dashboard.php" method="POST" style="display:inline;">
-                <input type="hidden" name="logout_action" value="1">
-                <button type="submit" class="nav-link"><i class="fa-solid fa-right-from-bracket"></i> Log Out</button>
-            </form>
+            <a href="<?php echo htmlspecialchars($baseUrl); ?>/php/auth/logout.php" class="nav-link danger-link">
+                <i class="fa-solid fa-right-from-bracket"></i> Log Out
+            </a>
         </div>
     </div>
 </nav>

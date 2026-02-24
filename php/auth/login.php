@@ -20,6 +20,14 @@ if (isset($_SESSION['login_error'])) {
     $login_error = $_SESSION['login_error'];
     unset($_SESSION['login_error']);
 }
+if (isset($_GET['error'])) {
+    if ($_GET['error'] === 'blocked_consumer') {
+        $login_error = "Your account has been blocked. Please contact admin or superadmin.";
+    }
+    elseif ($_GET['error'] === 'blocked_admin' || $_GET['error'] === 'blocked') {
+        $login_error = "Your account has been blocked. Please contact superadmin.";
+    }
+}
 
 $lockoutActive = false;
 $lockoutTime = 0;

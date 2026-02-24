@@ -58,8 +58,8 @@ $sql = "SELECT
             (SELECT log_time FROM login_logs l2
              WHERE l2.user_id = l.user_id
              AND l2.action = 'logout'
-             AND l2.log_time > l.log_time
-             ORDER BY l2.log_time ASC LIMIT 1) as logout_time,
+             AND (l2.log_time > l.log_time OR (l2.log_time = l.log_time AND l2.id > l.id))
+             ORDER BY l2.log_time ASC, l2.id ASC LIMIT 1) as logout_time,
             u.firstName, u.lastName, u.role, u.username
         FROM login_logs l
         LEFT JOIN users u ON l.user_id = u.id

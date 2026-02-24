@@ -2,7 +2,7 @@
 session_start();
 require_once __DIR__ . '/../includes/auth.php';
 requireRole('superadmin');
-$pageTitle = 'Block Requests';
+$pageTitle = 'Requests';
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -30,8 +30,8 @@ $pageTitle = 'Block Requests';
 include __DIR__ . '/../includes/layout/sidebar.php'; ?>
 
         <main class="dashboard-main">
-            <h1 class="page-title">Block Requests</h1>
-            <p>Review requests from Admins to block Consuemrs.</p>
+            <h1 class="page-title">Requests</h1>
+            <p>Review registration and block/unblock requests.</p>
 
             <div id="requestsTableContainer">Loading...</div>
         </main>
@@ -50,23 +50,34 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                         document.getElementById('requestsTableContainer').innerHTML = '<div class="empty-state"><p>No pending requests.</p></div>';
                         return;
                     }
-                    let html = '<table class="data-table"><thead><tr><th>Requester (Admin)</th><th>Target (Consumer)</th><th>Reason</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>';
+                    let html = '<table class="data-table"><thead><tr><th>Requester (Admin)</th><th>Target (Consumer)</th><th>Type</th><th>Reason</th><th>Status</th><th>Date</th><th>Action</th></tr></thead><tbody>';
                     data.requests.forEach(r => {
                         html += `<tr>
                             <td>${escapeHtml(r.r_first + ' ' + r.r_last)}</td>
-                            <td>${escapeHtml(r.t_first + ' ' + r.t_last)} <span class="muted">(${r.t_username})</span></td>
+                            <td>${escapeHtml(r.t_first + ' ' + r.t_last)} <span class="muted small">(@${r.t_username})</span></td>
+                             <td>
+                                 <span class="status-badge no-dot" style="font-size: 0.75rem;
+                                    ${r.request_type === 'registration' ? 'background: #dbeafe; color: #2563eb;' :
+                                      r.request_type === 'unblock' ? 'background: #dcfce7; color: #16a34a;' :
+                                      'background: #fee2e2; color: #dc2626;'}">
+                                     ${r.request_type.toUpperCase()}
+                                 </span>
+                             </td>
                             <td>${escapeHtml(r.reason)}</td>
-                            <td><span style="display:inline-block; padding:0.2rem 0.6rem; border-radius:20px; font-size:0.78rem; font-weight:600; ${r.status === 'pending' ? 'background:#fef3c7; color:#d97706;' : r.status === 'approved' ? 'background:#dcfce7; color:#16a34a;' : 'background:#fee2e2; color:#dc2626;'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
+                            <td><span class="status-badge no-dot ${r.status === 'pending' ? 'status-pending' : r.status === 'approved' ? 'status-ok' : 'status-trash'}">${r.status.charAt(0).toUpperCase() + r.status.slice(1)}</span></td>
                             <td>${new Date(r.created_at).toLocaleDateString()}</td>
                             <td>`;
 
                         if (r.status === 'pending') {
+                            const isReg = r.request_type === 'registration';
+                            const btnText = isReg ? 'Approve' : (r.request_type === 'unblock' ? 'Unblock' : 'Block');
+                            const btnBg = isReg ? 'var(--primary-color)' : (r.request_type === 'unblock' ? 'var(--success-color)' : 'var(--error-color)');
                             html += `<div class="action-container" style="display:flex; gap:0.5rem;">
-                                <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background-color: var(--error-color);" onclick="handleRequest(${r.id}, 'approve')">Block</button>
+                                <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; background-color: ${btnBg};" onclick="handleRequest(${r.id}, 'approve')">${btnText}</button>
                                 <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="handleRequest(${r.id}, 'reject')">Reject</button>
                             </div>`;
                         } else {
-                            html += `<span class="muted">Processed</span>`;
+                            html += `<span class="muted" style="font-size: 0.85rem;">Processed</span>`;
                         }
 
                         html += `</td></tr>`;

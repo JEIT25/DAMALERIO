@@ -2,20 +2,7 @@
 session_start();
 require __DIR__ . '/db_connect.php';
 
-// Function to log login/logout actions
-function logUserAction($user_id, $action)
-{
-    global $conn;
-    try {
-        $stmt = $conn->prepare("INSERT INTO login_logs (user_id, action) VALUES (?, ?)");
-        $stmt->bind_param('ss', $user_id, $action);
-        $stmt->execute();
-        $stmt->close();
-    }
-    catch (Exception $e) {
-    // Silently fail logging
-    }
-}
+// --- REPLACED BY CENTRAL HELPER IN auth.php ---
 
 // This function now *only* handles failed login attempts and updates $response
 function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response, $usernameOrEmail = '') // Takes $response by reference
@@ -104,6 +91,31 @@ if ($isFormSubmission) {
             $user = $result->fetch_assoc();
             $storedHash = $user['password'] ?? '';
             if ($storedHash !== '' && password_verify($password, $storedHash)) {
+                // Check if user is blocked or pending approval
+                if ((int)($user['is_blocked'] ?? 0) === 1) {
+                    $role = $user['role'] ?? 'consumer';
+                    if ($role === 'consumer') {
+                        $response['error'] = "Your account has been blocked. Please contact admin or superadmin.";
+                    }
+                    else {
+                        $response['error'] = "Your account has been blocked. Please contact superadmin.";
+                    }
+                    echo json_encode($response);
+                    exit;
+                }
+
+                $status = $user['status'] ?? 'active';
+                if ($status === 'pending') {
+                    $response['error'] = "Your account is awaiting approval. Please contact admin or superadmin.";
+                    echo json_encode($response);
+                    exit;
+                }
+                elseif ($status === 'rejected') {
+                    $response['error'] = "Your registration request has been rejected. Please contact support.";
+                    echo json_encode($response);
+                    exit;
+                }
+
                 if (!array_key_exists('role', $user)) {
                     $user['role'] = 'consumer';
                 }
@@ -112,6 +124,7 @@ if ($isFormSubmission) {
                 $_SESSION['lockout_time'] = 0; // Reset lockout on success
 
                 // Log successful login
+                require_once __DIR__ . '/../includes/auth.php';
                 logUserAction($user['id'], 'login');
 
                 $base = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/DAMALERIO';

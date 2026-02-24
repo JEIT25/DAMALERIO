@@ -8,21 +8,27 @@ requireRole('admin');
 
 $target_id = trim($_POST['target_id'] ?? '');
 $reason = trim($_POST['reason'] ?? '');
+$request_type = trim($_POST['request_type'] ?? 'block');
 
 if (!$target_id || !$reason) {
     echo json_encode(['success' => false, 'error' => 'Target ID and Reason required']);
     exit;
 }
 
+if (!in_array($request_type, ['block', 'unblock'])) {
+    echo json_encode(['success' => false, 'error' => 'Invalid request type']);
+    exit;
+}
+
 $requester_id = $_SESSION['user']['id'];
 
-// Check for existing pending request for this target
-$check = $conn->prepare("SELECT id FROM user_block_requests WHERE target_id = ? AND status = 'pending'");
-$check->bind_param('s', $target_id);
+// Check for existing pending request for this target OF THE SAME TYPE
+$check = $conn->prepare("SELECT id FROM user_block_requests WHERE target_id = ? AND status = 'pending' AND request_type = ?");
+$check->bind_param('ss', $target_id, $request_type);
 $check->execute();
 $existing = $check->get_result();
 if ($existing->num_rows > 0) {
-    echo json_encode(['success' => false, 'error' => 'A pending block request already exists for this user.']);
+    echo json_encode(['success' => false, 'error' => "A pending $request_type request already exists for this user."]);
     $check->close();
     $conn->close();
     exit;
@@ -30,8 +36,8 @@ if ($existing->num_rows > 0) {
 $check->close();
 
 // Insert request
-$stmt = $conn->prepare("INSERT INTO user_block_requests (requester_id, target_id, reason, status) VALUES (?, ?, ?, 'pending')");
-$stmt->bind_param('sss', $requester_id, $target_id, $reason);
+$stmt = $conn->prepare("INSERT INTO user_block_requests (requester_id, target_id, request_type, reason, status) VALUES (?, ?, ?, ?, 'pending')");
+$stmt->bind_param('ssss', $requester_id, $target_id, $request_type, $reason);
 
 if ($stmt->execute()) {
     echo json_encode(['success' => true]);

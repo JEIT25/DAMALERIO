@@ -128,7 +128,7 @@ async function checkFieldExists(fieldId, value, fieldName) {
     formData.append('value', value);
 
     try {
-        const response = await fetch('http://localhost/DAMALERIO/php/database/check_unique.php', {
+        const response = await fetch('../../php/database/check_unique.php', {
             method: 'POST',
             body: formData
         });
@@ -759,21 +759,21 @@ registerForm.addEventListener('submit', async function (e) {
         const formData = new FormData(this);
 
         try {
-            const response = await fetch('http://localhost/DAMALERIO/php/database/signup.php', {
+            const response = await fetch('../../php/database/signup.php', {
                 method: 'POST',
                 body: formData
             });
             const data = await response.text();
 
-            // Check if exact success string matches your PHP output
-            if (data.trim() === "User successfully registered!") {
+            // Check if success message is present in the response
+            if (data.trim().includes("User successfully registered!")) {
 
                 // TRIGGER THE CLEAN SUCCESS DISPLAY
                 showSuccessMessage(data);
 
                 // Redirect after 3 seconds
                 setTimeout(() => {
-                    window.location.href = "http://localhost/DAMALERIO/php/forms/login.php";
+                    window.location.href = "../forms/login.php";
                 }, 3000);
             } else {
                 // ... (Error handling logic remains the same)

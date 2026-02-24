@@ -42,11 +42,40 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
 
         <main class="dashboard-main">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h1 class="page-title">Consumer Management</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h1 class="page-title" style="margin-bottom: 0;">Consumer Management</h1>
+                    <span id="userCountBadge" class="status-badge no-dot" style="background: var(--primary-color); color: white; padding: 0.2rem 0.8rem; font-size: 0.9rem; border-radius: 20px;">0 Consumers</span>
+                </div>
                 <button class="btn-primary" onclick="openUserModal()">Add Consumer</button>
             </div>
 
+            <!-- Search and Filters -->
+            <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label>Search Consumers</label>
+                        <input type="text" id="searchInput" placeholder="Search by name, username, or email..." onkeyup="handleSearch(event)">
+                    </div>
+                    <div class="form-group" style="width: 150px; margin-bottom: 0;">
+                        <label>Status</label>
+                        <select id="filterStatus" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+
             <div id="usersTableContainer">Loading...</div>
+
+            <div id="paginationContainer" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div id="paginationInfo" class="hint">Showing 0-0 of 0 consumers</div>
+                <div id="paginationControls" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <!-- Page buttons will be injected here -->
+                </div>
+            </div>
         </main>
         <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
     </div>
@@ -212,7 +241,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 </div>
                 <div style="display: flex; gap: 0.75rem; margin-top: 1.5rem;">
                     <button type="button" onclick="document.getElementById('blockModal').style.display='none'" class="btn-secondary" style="flex: 1; justify-content: center;">Cancel</button>
-                    <button type="submit" class="btn-primary" style="background: #dc2626; flex: 1; justify-content: center; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
+                    <button type="submit" id="submitRequestBtn" class="btn-primary" style="background: #dc2626; flex: 1; justify-content: center; box-shadow: 0 2px 4px rgba(220, 38, 38, 0.2);">
                         Submit Request
                     </button>
                 </div>
@@ -245,44 +274,129 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
     <script>
         const api = '../../php/database';
 
-        function loadUsers() {
-            fetch(api + '/admin_consumers_list.php')
+        // Pagination & Filter State
+        let currentPage = 1;
+        let currentSearch = '';
+        let currentStatus = '';
+
+        function loadUsers(page = 1) {
+            currentPage = page;
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                search: currentSearch,
+                status: currentStatus
+            });
+
+            fetch(api + '/admin_consumers_list.php?' + params.toString())
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) return;
-                    if (data.consumers.length === 0) {
-                        document.getElementById('usersTableContainer').innerHTML = '<div class="empty-state"><p>No consumers found.</p></div>';
-                        return;
-                    }
 
                     let html = '<table class="data-table"><thead><tr><th>Name</th><th>Username</th><th>Email</th><th>Status</th><th>Actions</th><th>Privileges</th></tr></thead><tbody>';
-                    data.consumers.forEach(u => {
-                        const isBlocked = u.is_blocked == 1;
-                        html += `<tr class="${isBlocked ? 'blocked-row' : ''}">
-                            <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
-                            <td>${escapeHtml(u.username)}</td>
-                            <td>${escapeHtml(u.email)}</td>
-                            <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
-                            <td>
-                                <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick='editUser(${JSON.stringify(u)})'>
-                                    <i class="fa-solid fa-pen-to-square" style="margin-right:0.25rem;"></i> Edit
-                                </button>
-                                ${!isBlocked ? `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--error-color); border-color: var(--error-color);" onclick="openBlockModal('${u.id}')"><i class="fa-solid fa-ban" style="margin-right:0.25rem;"></i>Block</button>` : ''}
-                            </td>
-                            <td>
-                                <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewPrivileges('consumer', '${escapeHtml(u.username)}')">
-                                    <i class="fa-solid fa-eye" style="margin-right:0.25rem;"></i> View
-                                </button>
-                            </td>
-                        </tr>`;
-                    });
+
+                    if (data.consumers.length === 0) {
+                        html += '<tr><td colspan="6" style="text-align:center; padding:2rem;">No consumers found matching your criteria.</td></tr>';
+                    } else {
+                        data.consumers.forEach(u => {
+                            const isBlocked = u.is_blocked == 1;
+                            html += `<tr class="${isBlocked ? 'blocked-row' : ''}">
+                                <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
+                                <td>${escapeHtml(u.username)}</td>
+                                <td>${escapeHtml(u.email)}</td>
+                                <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
+                                <td>
+                                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick='editUser(${JSON.stringify(u)})'>
+                                        <i class="fa-solid fa-pen-to-square" style="margin-right:0.25rem;"></i> Edit
+                                    </button>
+                                    ${!isBlocked ?
+                                        `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--error-color); border-color: var(--error-color);" onclick="openBlockModal('${u.id}', 'block')"><i class="fa-solid fa-ban" style="margin-right:0.25rem;"></i>Request Block</button>` :
+                                        `<button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem; color: var(--success-color); border-color: var(--success-color);" onclick="openBlockModal('${u.id}', 'unblock')"><i class="fa-solid fa-unlock" style="margin-right:0.25rem;"></i>Request Unblock</button>`
+                                    }
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.85rem;" onclick="viewPrivileges('consumer', '${escapeHtml(u.username)}')">
+                                        <i class="fa-solid fa-eye" style="margin-right:0.25rem;"></i> View
+                                    </button>
+                                </td>
+                            </tr>`;
+                        });
+                    }
                     html += '</tbody></table>';
                     document.getElementById('usersTableContainer').innerHTML = html;
+
+                    renderPagination(data.pagination);
                 });
         }
 
+        function renderPagination(p) {
+            const info = document.getElementById('paginationInfo');
+            const controls = document.getElementById('paginationControls');
+            const badge = document.getElementById('userCountBadge');
+
+            // Update Badge
+            badge.textContent = `${p.total_users} Consumer${p.total_users !== 1 ? 's' : ''}`;
+
+            // Update Info
+            const start = (p.current_page - 1) * p.limit + 1;
+            const end = Math.min(start + p.limit - 1, p.total_users);
+            info.textContent = `Showing ${p.total_users > 0 ? start : 0}-${end} of ${p.total_users} consumers`;
+
+            // Update Controls
+            let html = '';
+
+            // Previous
+            html += `<button class="btn-secondary" style="padding: 0.25rem 0.5rem;" ${p.current_page === 1 ? 'disabled' : `onclick="loadUsers(${p.current_page - 1})"`}>&laquo;</button>`;
+
+            // Page Numbers
+            for (let i = 1; i <= p.total_pages; i++) {
+                if (i === 1 || i === p.total_pages || (i >= p.current_page - 1 && i <= p.current_page + 1)) {
+                    html += `<button class="${i === p.current_page ? 'btn-primary' : 'btn-secondary'}" style="padding: 0.25rem 0.5rem; min-width: 2rem;" onclick="loadUsers(${i})">${i}</button>`;
+                } else if (i === p.current_page - 2 || i === p.current_page + 2) {
+                    html += `<span style="padding: 0 0.25rem;">...</span>`;
+                }
+            }
+
+            // Next
+            html += `<button class="btn-secondary" style="padding: 0.25rem 0.5rem;" ${p.current_page === p.total_pages || p.total_pages === 0 ? 'disabled' : `onclick="loadUsers(${p.current_page + 1})"`}>&raquo;</button>`;
+
+            controls.innerHTML = html;
+        }
+
+        // Search & Filter Handlers
+        let searchTimeout;
+        function handleSearch(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value;
+                loadUsers(1);
+            }, 300);
+        }
+
+        function applyFilters() {
+            currentStatus = document.getElementById('filterStatus').value;
+            loadUsers(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterStatus').value = '';
+            currentSearch = '';
+            currentStatus = '';
+            loadUsers(1);
+        }
+
         const privileges = {
-            'consumer': ['Place Orders', 'View Order History', 'View Profile Information', 'Change Account Password', 'Add Favorites']
+            'consumer': [
+                'Browse Restaurants and Menus',
+                'Add Items to Shopping Cart',
+                'Manage Personal Delivery Addresses',
+                'Place and Track Food Orders',
+                'Manage Profile and Security Questions',
+                'View Complete Order History',
+                'Save Favorite Restaurants',
+                'Provide Ratings and Reviews'
+            ]
         };
 
         function viewPrivileges(role, name) {
@@ -352,12 +466,60 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(d => {
                     if (d.success) {
                         closeConsumerModal();
-                        loadUsers();
+                        showMessageModal('success', 'Consumer Saved', 'Consumer data has been updated successfully.');
+                        loadUsers(currentPage);
                     } else {
-                        alert(d.error);
+                        showMessageModal('error', 'Save Failed', d.error || 'An error occurred.');
                     }
+                })
+                .catch(() => {
+                    showMessageModal('error', 'Error', 'A network error occurred.');
                 });
         };
+
+        function openBlockModal(id, type = 'block') {
+            document.getElementById('targetId').value = id;
+            document.getElementById('blockReason').value = '';
+
+            // Dynamic labels
+            const title = type === 'block' ? 'Request to Block Consumer' : 'Request to Unblock Consumer';
+            const subtitle = type === 'block' ?
+                "This action will restrict the consumer's access. A super admin must approve this request." :
+                "This action will restore the consumer's access. A super admin must approve this request.";
+            const btnText = type === 'block' ? 'Submit Block Request' : 'Submit Unblock Request';
+            const btnBg = type === 'block' ? '#dc2626' : '#16a34a';
+            const btnShadow = type === 'block' ? 'rgba(220, 38, 38, 0.2)' : 'rgba(22, 163, 74, 0.2)';
+            const icon = type === 'block' ? 'fa-triangle-exclamation' : 'fa-unlock';
+            const iconBg = type === 'block' ? '#fee2e2' : '#dcfce7';
+            const iconColor = type === 'block' ? '#dc2626' : '#16a34a';
+
+            const modal = document.getElementById('blockModal');
+            modal.querySelector('h2').textContent = title;
+            modal.querySelector('p').textContent = subtitle;
+
+            const submitBtn = document.getElementById('submitRequestBtn');
+            submitBtn.innerHTML = btnText;
+            submitBtn.style.background = btnBg;
+            submitBtn.style.boxShadow = `0 2px 4px ${btnShadow}`;
+
+            const iconContainer = modal.querySelector('div > div');
+            iconContainer.style.background = iconBg;
+            iconContainer.querySelector('i').className = `fa-solid ${icon}`;
+            iconContainer.querySelector('i').style.color = iconColor;
+
+            // Add hidden type to form if not exists
+            let typeInput = document.getElementById('requestTypeInput');
+            if (!typeInput) {
+                typeInput = document.createElement('input');
+                typeInput.type = 'hidden';
+                typeInput.name = 'request_type';
+                typeInput.id = 'requestTypeInput';
+                document.getElementById('blockForm').appendChild(typeInput);
+            }
+            typeInput.value = type;
+
+            modal.style.display = 'flex';
+        }
 
         document.getElementById('blockForm').onsubmit = function(e) {
             e.preventDefault();
@@ -366,8 +528,9 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(r => r.json())
                 .then(d => {
                     document.getElementById('blockModal').style.display = 'none';
+                    const type = fd.get('request_type');
                     if (d.success) {
-                        showMessageModal('success', 'Request Submitted', 'The block request has been sent for approval.');
+                        showMessageModal('success', 'Request Submitted', `The ${type} request has been sent for approval.`);
                     } else {
                         showMessageModal('error', 'Request Failed', d.error || 'An error occurred.');
                     }
@@ -405,12 +568,6 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
 
         function closeMessageModal() {
             document.getElementById('messageModal').style.display = 'none';
-        }
-
-        function openBlockModal(id) {
-            document.getElementById('targetId').value = id;
-            document.getElementById('blockReason').value = '';
-            document.getElementById('blockModal').style.display = 'flex';
         }
 
         function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; }

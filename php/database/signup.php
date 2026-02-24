@@ -19,6 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $email = $_POST['email'];
     $password = $_POST['password'];
     $birthdate = $_POST['birthdate'];
+    $sex = $_POST['sex'];
     $age = date_diff(date_create($birthdate), date_create('today'))->y;
     $secure_question = $_POST['secure_question'];
     $secure_answerRaw = $_POST['secure_answer'];
@@ -72,31 +73,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
     $stmt->close();
-    
+
     // --- END DUPLICATE CHECK ---
 
-    // New users are always consumers; admin/superadmin are set manually in DB
+    // New users are always consumers and start as 'pending' for approval
     $role = 'consumer';
+    $status = 'pending';
 
-    // Prepare SQL statement (includes role and all security questions)
+    // Prepare SQL statement (includes role, status and all security questions)
     $sql = "INSERT INTO users (
                 id, firstName, lastName, middleInitial, extension,
-                purok, barangay, city, province, zipCode, country, 
-                username, email, password, birthdate, age, 
-                secure_question, secure_answer, secure_question2, secure_answer2, 
-                secure_question3, secure_answer3, role
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+                sex, purok, barangay, city, province, zipCode, country,
+                username, email, password, birthdate, age,
+                secure_question, secure_answer, secure_question2, secure_answer2,
+                secure_question3, secure_answer3, role, status
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
     $stmt = $conn->prepare($sql);
 
     if ($stmt) {
         $stmt->bind_param(
-            'sssssssssssssssssssssis', // 23 params
+            'ssssssssssssssssissssssss', // 25 params (age is 17th)
             $id,
             $firstName,
             $lastName,
             $middleInitial,
             $extension,
+            $sex,
             $purok,
             $barangay,
             $city,
@@ -114,21 +117,32 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             $secure_answer2Hashed,
             $secure_question3,
             $secure_answer3Hashed,
-            $role
+            $role,
+            $status
         );
 
         if ($stmt->execute()) {
-            echo "User successfully registered!";
-        } else {
+            // Create a registration request in user_block_requests
+            $req_stmt = $conn->prepare("INSERT INTO user_block_requests (requester_id, target_id, reason, request_type, status) VALUES (?, ?, ?, 'registration', 'pending')");
+            $reason = "New User Registration";
+            $req_stmt->bind_param('sss', $id, $id, $reason);
+            $req_stmt->execute();
+            $req_stmt->close();
+
+            echo "User successfully registered! Your account is awaiting approval.";
+        }
+        else {
             if ($conn->errno == 1062) {
                 echo "An error occurred: Duplicate entry for a unique field.";
-            } else {
+            }
+            else {
                 echo "Signup failed. Please try again. Error: " . $stmt->error;
             }
         }
 
         $stmt->close();
-    } else {
+    }
+    else {
         die("Database Error: " . $conn->error);
     }
 

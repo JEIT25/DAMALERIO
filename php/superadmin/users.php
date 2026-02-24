@@ -44,13 +44,76 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
 
         <main class="dashboard-main">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
-                <h1 class="page-title">User Management</h1>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <h1 class="page-title" style="margin-bottom: 0;">User Management</h1>
+                    <span id="userCountBadge" class="status-badge no-dot" style="background: var(--primary-color); color: white; padding: 0.2rem 0.8rem; font-size: 0.9rem; border-radius: 20px;">0 Users</span>
+                </div>
                 <button class="btn-primary" onclick="openUserModal()">Add User</button>
             </div>
 
+            <!-- Search and Filters -->
+            <div class="card" style="margin-bottom: 1rem; padding: 1rem;">
+                <div style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: flex-end;">
+                    <div class="form-group" style="flex: 1; min-width: 200px; margin-bottom: 0;">
+                        <label>Search Users</label>
+                        <input type="text" id="searchInput" placeholder="Search by name, username, or email..." onkeyup="handleSearch(event)">
+                    </div>
+                    <div class="form-group" style="width: 150px; margin-bottom: 0;">
+                        <label>Role</label>
+                        <select id="filterRole" onchange="applyFilters()">
+                            <option value="">All Roles</option>
+                            <option value="consumer">Consumer</option>
+                            <option value="admin">Admin</option>
+                            <option value="superadmin">Superadmin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="width: 150px; margin-bottom: 0;">
+                        <label>Status</label>
+                        <select id="filterStatus" onchange="applyFilters()">
+                            <option value="">All Status</option>
+                            <option value="active">Active</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                    </div>
+                    <button class="btn-secondary" onclick="resetFilters()">Reset</button>
+                </div>
+            </div>
+
             <div id="usersTableContainer">Loading...</div>
+
+            <div id="paginationContainer" style="margin-top: 1rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+                <div id="paginationInfo" class="hint">Showing 0-0 of 0 users</div>
+                <div id="paginationControls" style="display: flex; gap: 0.5rem; align-items: center;">
+                    <!-- Page buttons will be injected here -->
+                </div>
+            </div>
         </main>
         <?php include __DIR__ . '/../includes/layout/footer.php'; ?>
+    </div>
+
+    <!-- Delete Confirmation Modal -->
+    <div id="deleteModal" class="modal2">
+        <div class="modal2-content" style="max-width: 400px;">
+            <h2 style="color: var(--error-color);">Confirm Delete</h2>
+            <p>Are you sure you want to permanently delete <span id="deleteUserName" style="font-weight: bold;"></span>?</p>
+            <p class="hint" style="margin-top: 0.5rem;">This action cannot be undone and may fail if the user has active orders or dependencies.</p>
+            <div style="text-align: right; margin-top: 1.5rem;">
+                <button onclick="closeDeleteModal()" class="btn-secondary">Cancel</button>
+                <button id="confirmDeleteBtn" class="btn-primary" style="background: var(--error-color); border-color: var(--error-color);">Delete User</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Modal -->
+    <div id="responseModal" class="modal2">
+        <div class="modal2-content" style="max-width: 400px; text-align: center;">
+            <div id="responseIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+            <h2 id="responseTitle">Success</h2>
+            <p id="responseMessage"></p>
+            <div style="margin-top: 1.5rem;">
+                <button onclick="closeResponseModal()" class="btn-primary">OK</button>
+            </div>
+        </div>
     </div>
 
     <!-- User Modal (Add/Edit) -->
@@ -222,41 +285,176 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
         const api = '../../php/database';
         const currentUserId = '<?php echo $_SESSION['user']['id']; ?>';
 
-        function loadUsers() {
-            fetch(api + '/superadmin_users_list.php')
+        // Pagination & Filter State
+        let currentPage = 1;
+        let currentSearch = '';
+        let currentRole = '';
+        let currentStatus = '';
+
+        function loadUsers(page = 1) {
+            currentPage = page;
+            const params = new URLSearchParams({
+                page: currentPage,
+                limit: 10,
+                search: currentSearch,
+                role: currentRole,
+                status: currentStatus
+            });
+
+            fetch(api + '/superadmin_users_list.php?' + params.toString())
                 .then(r => r.json())
                 .then(data => {
                     if (!data.success) return;
+
                     let html = '<table class="data-table"><thead><tr><th>Name</th><th>Username</th><th>Role</th><th>Status</th><th>Actions</th><th>Privileges</th></tr></thead><tbody>';
-                    data.users.forEach(u => {
-                        const isBlocked = u.is_blocked == 1;
-                        const isSelf = u.id === currentUserId;
-                        const rowClass = isBlocked ? 'blocked-row' : '';
 
-                        let roleClass = 'role-consumer';
-                        if (u.role === 'admin') roleClass = 'role-admin';
-                        if (u.role === 'superadmin') roleClass = 'role-superadmin';
+                    if (data.users.length === 0) {
+                        html += '<tr><td colspan="6" style="text-align:center; padding:2rem;">No users found matching your criteria.</td></tr>';
+                    } else {
+                        data.users.forEach(u => {
+                            const isBlocked = u.is_blocked == 1;
+                            const isSelf = u.id === currentUserId;
+                            const rowClass = isBlocked ? 'blocked-row' : '';
 
-                        html += `<tr class="${rowClass}">
-                            <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
-                            <td>${escapeHtml(u.username)}</td>
-                            <td><span class="status-badge no-dot ${roleClass}">${u.role}</span></td>
-                            <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
-                            <td>
-                                <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
-                                ${!isSelf ? (isBlocked ?
-                                    `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="blockUser('${u.id}', 'unblock')">Unblock</button>` :
-                                    `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--error-color); border-color: var(--error-color);" onclick="blockUser('${u.id}', 'block')">Block</button>`) : ''}
-                            </td>
-                            <td>
-                                <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="viewPrivileges('${u.role}', '${escapeHtml(u.username)}')">View</button>
-                            </td>
-                        </tr>`;
-                    });
+                            let roleClass = 'role-consumer';
+                            if (u.role === 'admin') roleClass = 'role-admin';
+                            if (u.role === 'superadmin') roleClass = 'role-superadmin';
+
+                            html += `<tr class="${rowClass}">
+                                <td>${escapeHtml(u.firstName + ' ' + u.lastName)}</td>
+                                <td>${escapeHtml(u.username)}</td>
+                                <td><span class="status-badge no-dot ${roleClass}">${u.role}</span></td>
+                                <td>${isBlocked ? '<span class="status-badge no-dot status-trash">Blocked</span>' : '<span class="status-badge no-dot status-ok">Active</span>'}</td>
+                                <td>
+                                    <button class="btn-primary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick='editUser(${JSON.stringify(u)})'>Edit</button>
+                                    ${!isSelf ? (isBlocked ?
+                                        `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="blockUser('${u.id}', 'unblock')">Unblock</button>` :
+                                        `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--error-color); border-color: var(--error-color);" onclick="blockUser('${u.id}', 'block')">Block</button>`) : ''}
+                                    ${!isSelf ? `<button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem; color: var(--error-color); border-color: var(--error-color);" onclick="openDeleteModal('${u.id}', '${escapeHtml(u.firstName + ' ' + u.lastName)}')">Delete</button>` : ''}
+                                </td>
+                                <td>
+                                    <button class="btn-secondary" style="padding: 0.25rem 0.75rem; font-size: 0.8rem;" onclick="viewPrivileges('${u.role}', '${escapeHtml(u.username)}')">View</button>
+                                </td>
+                            </tr>`;
+                        });
+                    }
                     html += '</tbody></table>';
                     document.getElementById('usersTableContainer').innerHTML = html;
+
+                    renderPagination(data.pagination);
                 });
         }
+
+        function renderPagination(p) {
+            const info = document.getElementById('paginationInfo');
+            const controls = document.getElementById('paginationControls');
+            const badge = document.getElementById('userCountBadge');
+
+            // Update Badge
+            badge.textContent = `${p.total_users} User${p.total_users !== 1 ? 's' : ''}`;
+
+            // Update Info
+            const start = (p.current_page - 1) * p.limit + 1;
+            const end = Math.min(start + p.limit - 1, p.total_users);
+            info.textContent = `Showing ${p.total_users > 0 ? start : 0}-${end} of ${p.total_users} users`;
+
+            // Update Controls
+            let html = '';
+
+            // Previous
+            html += `<button class="btn-secondary" style="padding: 0.25rem 0.5rem;" ${p.current_page === 1 ? 'disabled' : `onclick="loadUsers(${p.current_page - 1})"`}>&laquo;</button>`;
+
+            // Page Numbers
+            for (let i = 1; i <= p.total_pages; i++) {
+                if (i === 1 || i === p.total_pages || (i >= p.current_page - 1 && i <= p.current_page + 1)) {
+                    html += `<button class="${i === p.current_page ? 'btn-primary' : 'btn-secondary'}" style="padding: 0.25rem 0.5rem; min-width: 2rem;" onclick="loadUsers(${i})">${i}</button>`;
+                } else if (i === p.current_page - 2 || i === p.current_page + 2) {
+                    html += `<span style="padding: 0 0.25rem;">...</span>`;
+                }
+            }
+
+            // Next
+            html += `<button class="btn-secondary" style="padding: 0.25rem 0.5rem;" ${p.current_page === p.total_pages || p.total_pages === 0 ? 'disabled' : `onclick="loadUsers(${p.current_page + 1})"`}>&raquo;</button>`;
+
+            controls.innerHTML = html;
+        }
+
+        // Search & Filter Handlers
+        let searchTimeout;
+        function handleSearch(e) {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                currentSearch = e.target.value;
+                loadUsers(1);
+            }, 300);
+        }
+
+        function applyFilters() {
+            currentRole = document.getElementById('filterRole').value;
+            currentStatus = document.getElementById('filterStatus').value;
+            loadUsers(1);
+        }
+
+        function resetFilters() {
+            document.getElementById('searchInput').value = '';
+            document.getElementById('filterRole').value = '';
+            document.getElementById('filterStatus').value = '';
+            currentSearch = '';
+            currentRole = '';
+            currentStatus = '';
+            loadUsers(1);
+        }
+
+        // User Management Handlers
+        let userToDelete = null;
+        function openDeleteModal(id, name) {
+            userToDelete = id;
+            document.getElementById('deleteUserName').textContent = name;
+            document.getElementById('deleteModal').style.display = 'flex';
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').style.display = 'none';
+            userToDelete = null;
+        }
+
+        function showResponse(success, message) {
+            const title = document.getElementById('responseTitle');
+            const msg = document.getElementById('responseMessage');
+            const icon = document.getElementById('responseIcon');
+
+            title.textContent = success ? 'Success' : 'Error';
+            title.style.color = success ? 'var(--success-color)' : 'var(--error-color)';
+            msg.textContent = message;
+            icon.innerHTML = success ? '<i class="fa-solid fa-circle-check" style="color: var(--success-color);"></i>' : '<i class="fa-solid fa-circle-xmark" style="color: var(--error-color);"></i>';
+
+            document.getElementById('responseModal').style.display = 'flex';
+        }
+
+        function closeResponseModal() {
+            document.getElementById('responseModal').style.display = 'none';
+        }
+
+        document.getElementById('confirmDeleteBtn').onclick = function() {
+            if (!userToDelete) return;
+            const fd = new FormData();
+            fd.append('user_id', userToDelete);
+            fetch(api + '/superadmin_user_delete.php', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(d => {
+                    closeDeleteModal();
+                    if (d.success) {
+                        showResponse(true, 'User has been successfully deleted.');
+                        loadUsers(currentPage);
+                    } else {
+                        showResponse(false, d.error || 'Failed to delete user.');
+                    }
+                })
+                .catch(() => {
+                    closeDeleteModal();
+                    showResponse(false, 'A network error occurred.');
+                });
+        };
 
         function blockUser(id, action) {
             if (!confirm(`Are you sure you want to ${action} this user?`)) return;
@@ -266,7 +464,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
             fetch(api + '/superadmin_user_block.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success) loadUsers();
+                    if (d.success) loadUsers(currentPage);
                     else alert(d.error);
                 });
         }
@@ -338,10 +536,14 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 .then(d => {
                     if (d.success) {
                         closeUserModal();
-                        loadUsers();
+                        showResponse(true, 'User data has been saved successfully.');
+                        loadUsers(currentPage);
                     } else {
-                        alert(d.error);
+                        showResponse(false, d.error || 'Failed to save user data.');
                     }
+                })
+                .catch(() => {
+                    showResponse(false, 'A network error occurred while saving.');
                 });
         };
 
