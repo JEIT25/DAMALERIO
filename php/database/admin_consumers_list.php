@@ -47,7 +47,7 @@ $stmt->close();
 $total_pages = ceil($total_users / $limit);
 
 // Get Paginated Data
-$query = "SELECT id, firstName, lastName, username, email, is_blocked, birthdate, sex, purok, barangay, city, province, zipCode, country FROM users $where_sql ORDER BY username LIMIT ? OFFSET ?";
+$query = "SELECT id, firstName, lastName, middleInitial, extension, age, username, email, is_blocked, birthdate, sex, purok, barangay, city, province, zipCode, country FROM users $where_sql ORDER BY username LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 $new_types = $types . 'ii';
 $new_params = array_merge($params, [$limit, $offset]);
@@ -69,7 +69,7 @@ echo json_encode([
     'pagination' => [
         'current_page' => $page,
         'total_pages' => $total_pages,
-        'total_users' => $total_users,
+        'total_requests' => $total_users, // JS expects total_requests for consumers
         'limit' => $limit
     ]
 ]);

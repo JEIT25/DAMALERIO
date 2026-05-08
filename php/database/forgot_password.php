@@ -16,12 +16,24 @@ if ($action === 'verify_user_id') {
         echo json_encode(['status' => 'error', 'message' => 'User ID is required.']);
         exit;
     }
-    $stmt = $conn->prepare("SELECT id, username, email, firstName, lastName FROM users WHERE id = ?");
+    $stmt = $conn->prepare("SELECT id, username, email, firstName, lastName, status FROM users WHERE id = ?");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
     if ($result->num_rows > 0) {
         $user = $result->fetch_assoc();
+        
+        // --- NEW: Block forgot password for pending/rejected registrations ---
+        if ($user['status'] === 'pending') {
+            echo json_encode(['status' => 'error', 'message' => 'Your account is still pending approval. You cannot reset your password yet.']);
+            $stmt->close();
+            exit;
+        } elseif ($user['status'] === 'rejected') {
+            echo json_encode(['status' => 'error', 'message' => 'Your registration request was rejected. Please contact support.']);
+            $stmt->close();
+            exit;
+        }
+
         $_SESSION['forgot_password_user_id'] = $user['id'];
         $_SESSION['forgot_password_username'] = $user['username'];
         $_SESSION['forgot_password_email'] = $user['email'];

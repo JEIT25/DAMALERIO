@@ -25,7 +25,7 @@
     </nav>
 
     <main>
-        <form class="signup-form" id="signUpForm" method="POST">
+        <form class="signup-form" id="signUpForm" method="POST" novalidate>
             <h2 id="formTitle">Join FoodGrab</h2>
 
             <!-- Success Modal -->

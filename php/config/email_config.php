@@ -10,7 +10,7 @@ function getEmailConfig()
     return [
         'mailjet' => [
             'api_key' => 'e324fa9aab609ddbf62952a7bc5e822e',
-            'api_secret' => '56f145204ff4cd591e9838987bb037a9',
+            'api_secret' => '94c3eb41201965fc64967e4aaa248724',
             'sender_email' => 'nikko.damalerio@csucc.edu.ph',
             'sender_name' => 'FoodGrab'
         ]

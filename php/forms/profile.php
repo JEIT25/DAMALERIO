@@ -148,6 +148,7 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 <button class="info-tab" data-tab="address"><i class="fa-solid fa-map-location-dot"></i> Address</button>
                 <button class="info-tab" data-tab="account"><i class="fa-solid fa-at"></i> Account</button>
                 <button class="info-tab" data-tab="security"><i class="fa-solid fa-lock"></i> Security</button>
+                <button class="info-tab" data-tab="privileges"><i class="fa-solid fa-shield-halved"></i> Privileges</button>
             </div>
 
             <!-- Personal Info -->
@@ -301,6 +302,21 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                             </button>
                         </div>
                     </form>
+                </div>
+            </div>
+            <!-- Privileges -->
+            <div class="info-panel" id="panel-privileges">
+                <div class="info-card">
+                    <div class="info-card-header">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <h3>Your Role Privileges</h3>
+                    </div>
+                    <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:1.25rem;">
+                        Below are the functional capabilities assigned to your account based on your <strong><?php echo htmlspecialchars($userRole); ?></strong> role.
+                    </p>
+                    <div id="privilegesList" class="info-grid" style="grid-template-columns: 1fr;">
+                        <!-- Rendered via JS -->
+                    </div>
                 </div>
             </div>
 
@@ -473,6 +489,53 @@ include __DIR__ . '/../includes/layout/sidebar.php'; ?>
                 })
                 .catch(() => showMessageModal('error', 'Error', 'Network error occurred.'));
         };
+
+        // --- Privileges Logic ---
+        const userRole = '<?php echo $userRole; ?>';
+        const allPrivileges = [
+            { id: 'profile',   desc: 'Access & Edit My Profile', roles: ['consumer', 'admin', 'superadmin'] },
+            { id: 'password',  desc: 'Change Account Password',  roles: ['consumer', 'admin', 'superadmin'] },
+            { id: 'browse',    desc: 'Browse Restaurants & Menus', roles: ['consumer'] },
+            { id: 'book',      desc: 'Book Table Reservations',   roles: ['consumer'] },
+            { id: 'history',   desc: 'View Personal Reservation History', roles: ['consumer'] },
+            { id: 'manage_c',  desc: 'Manage Consumer Accounts', roles: ['admin', 'superadmin'] },
+            { id: 'manage_r',  desc: 'Manage Restaurants & Tables', roles: ['admin', 'superadmin'] },
+            { id: 'approve',   desc: 'Approve / Reject Registration Requests', roles: ['admin', 'superadmin'] },
+            { id: 'block',     desc: 'Block / Unblock Users', roles: ['admin', 'superadmin'] },
+            { id: 'manage_a',  desc: 'Manage Administrative Accounts', roles: ['superadmin'] },
+            { id: 'logs',      desc: 'View System Audit Logs', roles: ['superadmin'] },
+            { id: 'full_adm',  desc: 'Full System Administration', roles: ['superadmin'] },
+        ];
+
+        function renderPrivileges() {
+            const container = document.getElementById('privilegesList');
+            if (!container) return;
+            
+            container.innerHTML = allPrivileges.map(p => {
+                const hasPriv = p.roles.includes(userRole);
+                return `
+                    <div style="display:flex; align-items:center; gap:1rem; padding:0.85rem 1rem; border-radius:10px; 
+                         background:${hasPriv ? 'rgba(22, 163, 74, 0.04)' : 'rgba(148, 163, 184, 0.04)'};
+                         border:1px solid ${hasPriv ? 'rgba(22, 163, 74, 0.15)' : 'rgba(148, 163, 184, 0.15)'};
+                         margin-bottom:0.5rem; transition: all 0.2s;">
+                        <div style="width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center;
+                             background:${hasPriv ? '#dcfce7' : '#f1f5f9'}; color:${hasPriv ? '#16a34a' : '#94a3b8'};">
+                            <i class="fa-solid ${hasPriv ? 'fa-check' : 'fa-xmark'}" style="font-size:0.9rem;"></i>
+                        </div>
+                        <div style="flex:1;">
+                            <div style="font-size:0.9rem; font-weight:600; color:${hasPriv ? '#166534' : '#64748b'}; 
+                                 text-decoration:${hasPriv ? 'none' : 'line-through'};">
+                                ${p.desc}
+                            </div>
+                            <div style="font-size:0.75rem; color:${hasPriv ? '#15803d' : '#94a3b8'}; opacity:0.8;">
+                                ${hasPriv ? 'Available for your role' : 'Restricted for your role'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        renderPrivileges();
     </script>
 </body>
 </html>

@@ -15,6 +15,9 @@ $offset = ($page - 1) * $limit;
 
 $search = isset($_GET['search']) ? trim($_GET['search']) : '';
 $status = isset($_GET['status']) ? trim($_GET['status']) : '';
+$type = isset($_GET['type']) ? trim($_GET['type']) : '';
+$start_date = isset($_GET['start_date']) ? trim($_GET['start_date']) : '';
+$end_date = isset($_GET['end_date']) ? trim($_GET['end_date']) : '';
 
 $where_clauses = ["(ubr.requester_id = ? OR ubr.request_type = 'registration')"];
 $params = [$admin_id];
@@ -30,6 +33,24 @@ if ($search !== '') {
 if ($status !== '') {
     $where_clauses[] = "ubr.status = ?";
     $params[] = $status;
+    $types .= 's';
+}
+
+if ($type !== '') {
+    $where_clauses[] = "ubr.request_type = ?";
+    $params[] = $type;
+    $types .= 's';
+}
+
+if ($start_date !== '') {
+    $where_clauses[] = "DATE(ubr.created_at) >= ?";
+    $params[] = $start_date;
+    $types .= 's';
+}
+
+if ($end_date !== '') {
+    $where_clauses[] = "DATE(ubr.created_at) <= ?";
+    $params[] = $end_date;
     $types .= 's';
 }
 

@@ -152,17 +152,35 @@ endif; ?>>
                 </div>
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label1" for="secure_answer1" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="password" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <div class="password-container">
+                        <input type="password" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
+                        <svg id="toggleSecureAnswer1" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </div>
                 </div>
 
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label2" for="secure_answer2" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="password" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <div class="password-container">
+                        <input type="password" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
+                        <svg id="toggleSecureAnswer2" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </div>
                 </div>
 
                 <div class="form-group" style="text-align: left;">
                     <label id="secure_question_label3" for="secure_answer3" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
-                    <input type="password" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
+                    <div class="password-container">
+                        <input type="password" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
+                        <svg id="toggleSecureAnswer3" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                            <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
+                            <circle cx="12" cy="12" r="3" />
+                        </svg>
+                    </div>
                 </div>
 
                 <span id="forgotStep3Msg" class="forgot-msg"></span>

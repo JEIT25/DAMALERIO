@@ -25,35 +25,33 @@ try {
     $stmt->execute();
     $stmt->close();
 
-    if ($action === 'approve') {
-        // Get request details
-        $stmt = $conn->prepare("SELECT target_id, request_type FROM user_block_requests WHERE id = ?");
-        $stmt->bind_param('i', $request_id);
-        $stmt->execute();
-        $res = $stmt->get_result();
-        if ($row = $res->fetch_assoc()) {
-            $target_id = $row['target_id'];
-            $type = $row['request_type'];
+    // Get request details
+    $stmt = $conn->prepare("SELECT target_id, request_type FROM user_block_requests WHERE id = ?");
+    $stmt->bind_param('i', $request_id);
+    $stmt->execute();
+    $res = $stmt->get_result();
+    if ($row = $res->fetch_assoc()) {
+        $target_id = $row['target_id'];
+        $type = $row['request_type'];
 
-            if ($type === 'registration') {
-                // Update user status for registration
-                $user_status = ($action === 'approve') ? 'active' : 'rejected';
-                $stmt2 = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
-                $stmt2->bind_param('ss', $user_status, $target_id);
-                $stmt2->execute();
-                $stmt2->close();
-            }
-            else {
-                // Block or Unblock user
-                $is_blocked = ($type === 'block') ? 1 : 0;
-                $stmt2 = $conn->prepare("UPDATE users SET is_blocked = ? WHERE id = ?");
-                $stmt2->bind_param('is', $is_blocked, $target_id);
-                $stmt2->execute();
-                $stmt2->close();
-            }
+        if ($type === 'registration') {
+            // Update user status for registration (active if approved, rejected if rejected)
+            $user_status = ($action === 'approve') ? 'active' : 'rejected';
+            $stmt2 = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
+            $stmt2->bind_param('ss', $user_status, $target_id);
+            $stmt2->execute();
+            $stmt2->close();
         }
-        $stmt->close();
+        elseif ($action === 'approve') {
+            // Block or Unblock user (only if approved)
+            $is_blocked = ($type === 'block') ? 1 : 0;
+            $stmt2 = $conn->prepare("UPDATE users SET is_blocked = ? WHERE id = ?");
+            $stmt2->bind_param('is', $is_blocked, $target_id);
+            $stmt2->execute();
+            $stmt2->close();
+        }
     }
+    $stmt->close();
 
     $conn->commit();
     echo json_encode(['success' => true]);

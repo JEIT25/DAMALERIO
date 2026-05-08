@@ -8,7 +8,7 @@ requireRole('superadmin');
 
 $date = trim($_GET['date'] ?? '');
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-$limit = 10;
+$limit = isset($_GET['limit']) ? max(1, (int)$_GET['limit']) : 10;
 $offset = ($page - 1) * $limit;
 
 $whereClause = "WHERE l.action = 'login'";

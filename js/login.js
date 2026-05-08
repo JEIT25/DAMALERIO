@@ -212,6 +212,9 @@ document.addEventListener('DOMContentLoaded', () => {
     var pwMatchSpan = document.getElementById("forgotPwMatch");
     var toggleNewPw = document.getElementById("toggleForgotNewPassword");
     var toggleConfirmPw = document.getElementById("toggleForgotConfirmPassword");
+    var toggleSA1 = document.getElementById("toggleSecureAnswer1");
+    var toggleSA2 = document.getElementById("toggleSecureAnswer2");
+    var toggleSA3 = document.getElementById("toggleSecureAnswer3");
 
     if (userNotFoundOkBtn) {
         userNotFoundOkBtn.onclick = function () {
@@ -267,6 +270,16 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmPwInput.type = confirmPwInput.type === 'password' ? 'text' : 'password';
     };
 
+    if (toggleSA1) toggleSA1.onclick = function () {
+        secureAnswer1.type = secureAnswer1.type === 'password' ? 'text' : 'password';
+    };
+    if (toggleSA2) toggleSA2.onclick = function () {
+        secureAnswer2.type = secureAnswer2.type === 'password' ? 'text' : 'password';
+    };
+    if (toggleSA3) toggleSA3.onclick = function () {
+        secureAnswer3.type = secureAnswer3.type === 'password' ? 'text' : 'password';
+    };
+
     if (window.FORGOT_PASSWORD_API && document.getElementById("forgotStep1")) {
         var step1 = document.getElementById("forgotStep1");
         var step2 = document.getElementById("forgotStep2");
@@ -309,12 +322,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (forgotOtpInput) forgotOtpInput.value = "";
 
             // Clear inputs
-            if (secureAnswer1) secureAnswer1.value = "";
-            if (secureAnswer2) secureAnswer2.value = "";
-            if (secureAnswer3) secureAnswer3.value = "";
+            if (secureAnswer1) { secureAnswer1.value = ""; secureAnswer1.type = "password"; }
+            if (secureAnswer2) { secureAnswer2.value = ""; secureAnswer2.type = "password"; }
+            if (secureAnswer3) { secureAnswer3.value = ""; secureAnswer3.type = "password"; }
 
-            if (newPwInput) newPwInput.value = "";
-            if (confirmPwInput) confirmPwInput.value = "";
+            if (newPwInput) { newPwInput.value = ""; newPwInput.type = "password"; }
+            if (confirmPwInput) { confirmPwInput.value = ""; confirmPwInput.type = "password"; }
             if (pwStrengthSpan) pwStrengthSpan.textContent = "";
             if (pwMatchSpan) pwMatchSpan.textContent = "";
 

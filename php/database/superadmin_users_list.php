@@ -57,7 +57,7 @@ else {
 $total_pages = ceil($total_users / $limit);
 
 // Get Paginated Data
-$query = "SELECT id, firstName, lastName, username, email, role, is_blocked, birthdate, sex, purok, barangay, city, province, zipCode, country FROM users $where_sql ORDER BY role, username LIMIT ? OFFSET ?";
+$query = "SELECT id, firstName, lastName, middleInitial, extension, username, email, role, is_blocked, birthdate, sex, purok, barangay, city, province, zipCode, country FROM users $where_sql ORDER BY role, username LIMIT ? OFFSET ?";
 $stmt = $conn->prepare($query);
 $new_types = $types . 'ii';
 $new_params = array_merge($params, [$limit, $offset]);

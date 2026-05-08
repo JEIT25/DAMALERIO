@@ -105,15 +105,17 @@ function showSuccessMessage(message) {
 
 // --- New Real-Time Validation Functions ---
 
-let debounceTimer;
+// --- New Real-Time Validation Functions ---
+const debounceTimers = {};
 /**
- * Delays running a function until the user stops typing.
+ * Delays running a function until the user stops typing for a specific field.
+ * @param {string} fieldId - The id of the field being debounced.
  * @param {function} func - The function to run.
- * @param {number} delay - The delay in milliseconds (e.g., 500).
+ * @param {number} delay - The delay in milliseconds.
  */
-function debounce(func, delay) {
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(func, delay);
+function debounce(fieldId, func, delay) {
+    clearTimeout(debounceTimers[fieldId]);
+    debounceTimers[fieldId] = setTimeout(func, delay);
 }
 
 /**
@@ -134,21 +136,22 @@ async function checkFieldExists(fieldId, value, fieldName) {
         });
 
         if (!response.ok) throw new Error('Network response was not ok');
-
         const data = await response.json();
 
         if (data.exists) {
             showValidationError(fieldId, `This ${fieldName} is already taken.`);
+            return false;
         } else {
-            // It's unique, so clear the "taken" error.
-            // This won't clear other errors like "format is wrong".
+            // It's unique, so clear ONLY the "taken" error if it exists.
             const errorSpan = document.getElementById(fieldId + 'Error');
-            if (errorSpan && errorSpan.innerText.includes('taken')) {
+            if (errorSpan && errorSpan.innerText.includes('already taken')) {
                 clearValidationError(fieldId);
             }
+            return true;
         }
     } catch (error) {
         console.error('Real-time validation check failed:', error);
+        return true; // Assume okay on error to avoid blocking user
     }
 }
 
@@ -186,16 +189,16 @@ function showStep(stepIndex) {
 }
 
 // Next Button Click
-nextBtn.addEventListener('click', () => {
+nextBtn.addEventListener('click', async () => {
     clearAllErrors();
     let isValid = false;
 
     if (currentStep === 0) {
-        isValid = validateStep1();
+        isValid = await validateStep1();
     } else if (currentStep === 1) {
         isValid = validateStep2();
     } else if (currentStep === 2) {
-        isValid = validateStep3();
+        isValid = await validateStep3();
     }
     // Note: Step 3 is the last one before submit, so nextBtn won't be visible on step 3 (index 2)
 
@@ -214,7 +217,7 @@ prevBtn.addEventListener('click', () => {
 // --- Refactored Validation Logic ---
 
 // --- Step 1 Validation ---
-function validateStep1() {
+async function validateStep1() {
     let isValid = true;
     const form = registerForm;
 
@@ -263,6 +266,12 @@ function validateStep1() {
 
     // --- Other Step 1 Validations ---
     if (!checkIdInput(form)) isValid = false;
+    else {
+        // If format is okay, check uniqueness
+        const idTaken = await checkFieldExists('id', form.id.value.trim(), 'ID');
+        if (!idTaken) isValid = false;
+    }
+
     if (!handleAgeValidation(form)) isValid = false;
     if (!checkThreeConsecLetters(form, 1)) isValid = false;
     if (!checkNumberInputs(form, 1)) isValid = false;
@@ -343,7 +352,7 @@ function validateStep2() {
 }
 
 // --- Step 3 Validation ---
-function validateStep3() {
+async function validateStep3() {
     let isValid = true;
     const form = registerForm;
 
@@ -392,6 +401,14 @@ function validateStep3() {
 
     // --- Other Step 3 Validations ---
     if (!checkUsername(form)) isValid = false;
+    else {
+        const usernameTaken = await checkFieldExists('username', form.username.value.trim(), 'Username');
+        if (!usernameTaken) isValid = false;
+    }
+
+    const emailTaken = await checkFieldExists('email', form.email.value.trim(), 'Email');
+    if (!emailTaken) isValid = false;
+
     if (!checkDoubleSpace(form, 3)) isValid = false;
 
     return isValid;
@@ -746,9 +763,9 @@ registerForm.addEventListener('submit', async function (e) {
     clearAllErrors();
 
     // Final validation of ALL steps before submitting
-    const isStep1Valid = validateStep1();
+    const isStep1Valid = await validateStep1();
     const isStep2Valid = validateStep2();
-    const isStep3Valid = validateStep3();
+    const isStep3Valid = await validateStep3();
     const isStep4Valid = validateStep4();
 
     if (isStep1Valid && isStep2Valid && isStep3Valid && isStep4Valid) {
@@ -822,17 +839,15 @@ document.addEventListener('DOMContentLoaded', () => {
     // 1. ID Check
     document.getElementById('id').addEventListener('input', (e) => {
         const value = e.target.value;
-        // First, check the format client-side
         if (/^[0-9]{4}-[0-9]{4}$/.test(value)) {
             // Format is valid, clear format error and check database
-            clearValidationError('id');
-            debounce(() => checkFieldExists('id', value, 'ID'), 500);
+            const errorSpan = document.getElementById('idError');
+            if (errorSpan && !errorSpan.innerText.includes('taken')) clearValidationError('id');
+            debounce('id', () => checkFieldExists('id', value, 'ID'), 500);
         } else if (value.length > 0) {
-            // Format is invalid, show format error
-            clearTimeout(debounceTimer); // Stop any pending server check
+            clearTimeout(debounceTimers['id']);
             showValidationError('id', 'ID must be in xxxx-xxxx format.');
         } else {
-            // Field is empty, clear all errors
             clearValidationError('id');
         }
     });
@@ -841,19 +856,16 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('username').addEventListener('input', (e) => {
         const value = e.target.value;
         if (/\s/.test(value)) {
-            // Client-side check for spaces
-            clearTimeout(debounceTimer);
+            clearTimeout(debounceTimers['username']);
             showValidationError('username', 'Username cannot contain spaces.');
         } else if (value.length > 0 && value.length < 4) {
-            // Client-side check for length
-            clearTimeout(debounceTimer);
+            clearTimeout(debounceTimers['username']);
             showValidationError('username', 'Username must be at least 4 characters.');
         } else if (value.length >= 4) {
-            // Looks good, check database
-            clearValidationError('username'); // Clear client-side errors
-            debounce(() => checkFieldExists('username', value, 'Username'), 500);
+            const errorSpan = document.getElementById('usernameError');
+            if (errorSpan && !errorSpan.innerText.includes('taken')) clearValidationError('username');
+            debounce('username', () => checkFieldExists('username', value, 'Username'), 500);
         } else {
-            // Field is empty
             clearValidationError('username');
         }
     });
@@ -865,15 +877,13 @@ document.addEventListener('DOMContentLoaded', () => {
             clearValidationError('email');
             return;
         }
-        // Client-side check for email format
         if (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) {
-            // Format looks valid, check database
-            clearValidationError('email');
-            debounce(() => checkFieldExists('email', value, 'Email'), 500);
+            const errorSpan = document.getElementById('emailError');
+            if (errorSpan && !errorSpan.innerText.includes('taken')) clearValidationError('email');
+            debounce('email', () => checkFieldExists('email', value, 'Email'), 500);
         } else {
-            // Format is invalid
-            clearTimeout(debounceTimer);
+            clearTimeout(debounceTimers['email']);
             showValidationError('email', 'Please enter a valid email address.');
         }
     });
-});
+});

@@ -17,15 +17,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['verify_id'])) {
         $error = 'Please enter your ID number';
     }
     else {
-        // Verify user exists and get details
-        $stmt = $conn->prepare("SELECT id, firstName, lastName, email FROM users WHERE id = ?");
+        // Verify user exists and get details, checking if account is approved
+        $stmt = $conn->prepare("SELECT id, firstName, lastName, email, status FROM users WHERE id = ?");
         $stmt->bind_param('s', $user_id);
         $stmt->execute();
         $result = $stmt->get_result();
 
         if ($result->num_rows > 0) {
             $user_data = $result->fetch_assoc();
-            $_SESSION['reset_user_id'] = $user_id;
+            
+            // --- NEW: Block forgot password for pending/rejected registrations ---
+            if ($user_data['status'] === 'pending') {
+                $error = 'Your account is still pending approval. You cannot reset your password yet.';
+                $user_data = null;
+            } elseif ($user_data['status'] === 'rejected') {
+                $error = 'Your registration request was rejected. Please contact support.';
+                $user_data = null;
+            } else {
+                $_SESSION['reset_user_id'] = $user_id;
+            }
         }
         else {
             $error = 'ID not found in our system';

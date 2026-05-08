@@ -4,6 +4,8 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/db_connect.php';
 require_once __DIR__ . '/../includes/auth.php';
 
+
+
 requireRole('admin');
 
 // Get input values (consumer specific)
@@ -42,97 +44,97 @@ if (!$firstName || !$lastName || !$username || !$email || !$sex || !$birthdate) 
 $age = date_diff(date_create($birthdate), date_create('today'))->y;
 
 // Check duplicates
-$sql = "SELECT id FROM users WHERE (username = ? OR email = ?)";
+$sql = "SELECT id FROM users WHERE (username = ? OR email = ? OR id = ?)";
 if ($id)
     $sql .= " AND id != ?";
 $stmt = $conn->prepare($sql);
 if ($id)
-    $stmt->bind_param('sss', $username, $email, $id);
+    $stmt->bind_param('ssss', $username, $email, $customId, $id);
 else
-    $stmt->bind_param('ss', $username, $email);
+    $stmt->bind_param('sss', $username, $email, $customId);
 $stmt->execute();
 if ($stmt->get_result()->num_rows > 0) {
-    echo json_encode(['success' => false, 'error' => 'Username or Email already exists']);
+    echo json_encode(['success' => false, 'error' => 'Username, Email, or ID Number already exists']);
     exit;
 }
 $stmt->close();
 
 $role = 'consumer'; // Forced
 
-if ($id) {
-    // UPDATE
-    $types = "sssssssssssssss";
-    $params = [
-        $firstName, $lastName, $middleInitial, $extension, $sex, $birthdate, $age,
-        $purok, $barangay, $city, $province, $zipCode, $country,
-        $username, $email
-    ];
-    $sql = "UPDATE users SET firstName=?, lastName=?, middleInitial=?, extension=?, sex=?, birthdate=?, age=?,
-            purok=?, barangay=?, city=?, province=?, zipCode=?, country=?,
-            username=?, email=?, role='consumer'";
+try {
+    if ($id) {
+        // UPDATE
+        $types = "sssssssissssssss";
+        $params = [
+            $customId, $firstName, $lastName, $middleInitial, $extension, $sex, $birthdate, $age,
+            $purok, $barangay, $city, $province, $zipCode, $country,
+            $username, $email
+        ];
+        $sql = "UPDATE users SET id=?, firstName=?, lastName=?, middleInitial=?, extension=?, sex=?, birthdate=?, age=?,
+                purok=?, barangay=?, city=?, province=?, zipCode=?, country=?,
+                username=?, email=?, role='consumer', status='active'";
 
-    if ($password) {
-        $sql .= ", password=?";
+        if ($password) {
+            $sql .= ", password=?";
+            $types .= "s";
+            $params[] = password_hash($password, PASSWORD_DEFAULT);
+        }
+
+        if ($secure_question && $secure_answer) {
+            $sql .= ", secure_question=?, secure_answer=?, secure_question2=?, secure_answer2=?, secure_question3=?, secure_answer3=?";
+            $types .= "ssssss";
+            $params[] = $secure_question;
+            $params[] = password_hash($secure_answer, PASSWORD_DEFAULT);
+            $params[] = $secure_question2;
+            $params[] = password_hash($secure_answer2, PASSWORD_DEFAULT);
+            $params[] = $secure_question3;
+            $params[] = password_hash($secure_answer3, PASSWORD_DEFAULT);
+        }
+
+        $sql .= " WHERE id=?";
         $types .= "s";
-        $params[] = password_hash($password, PASSWORD_DEFAULT);
+        $params[] = $id;
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param($types, ...$params);
+    } else {
+        // INSERT
+        if (!$password) {
+            echo json_encode(['success' => false, 'error' => 'Password required for new consumer']);
+            exit;
+        }
+        $newId = $customId ? $customId : sprintf('%04d-%04d', rand(0, 9999), rand(0, 9999));
+        $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
+        $ans1 = $secure_answer ? password_hash($secure_answer, PASSWORD_DEFAULT) : null;
+        $ans2 = $secure_answer2 ? password_hash($secure_answer2, PASSWORD_DEFAULT) : null;
+        $ans3 = $secure_answer3 ? password_hash($secure_answer3, PASSWORD_DEFAULT) : null;
+        $role = 'consumer';
+
+        $sql = "INSERT INTO users (
+                    id, firstName, lastName, middleInitial, extension, sex, birthdate, age,
+                    purok, barangay, city, province, zipCode, country,
+                    username, email, password, role, status,
+                    secure_question, secure_answer, secure_question2, secure_answer2, secure_question3, secure_answer3
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)";
+
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param(
+            'sssssssissssssssssssssss',
+            $newId, $firstName, $lastName, $middleInitial, $extension, $sex, $birthdate, $age,
+            $purok, $barangay, $city, $province, $zipCode, $country,
+            $username, $email, $hashedPassword, $role,
+            $secure_question, $ans1, $secure_question2, $ans2, $secure_question3, $ans3
+        );
     }
 
-    // Update security questions if provided
-    if ($secure_question && $secure_answer) {
-        $sql .= ", secure_question=?, secure_answer=?, secure_question2=?, secure_answer2=?, secure_question3=?, secure_answer3=?";
-        $types .= "ssssss";
-        $params[] = $secure_question;
-        $params[] = password_hash($secure_answer, PASSWORD_DEFAULT);
-        $params[] = $secure_question2;
-        $params[] = password_hash($secure_answer2, PASSWORD_DEFAULT);
-        $params[] = $secure_question3;
-        $params[] = password_hash($secure_answer3, PASSWORD_DEFAULT);
+    if ($stmt->execute()) {
+        echo json_encode(['success' => true]);
+    } else {
+        echo json_encode(['success' => false, 'error' => 'Database error: ' . $stmt->error]);
     }
-
-    $sql .= " WHERE id=?";
-    $types .= "s";
-    $params[] = $id;
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param($types, ...$params);
+    $stmt->close();
+} catch (Exception $e) {
+    echo json_encode(['success' => false, 'error' => 'Server error: ' . $e->getMessage()]);
 }
-else {
-    // CREATE
-    if (!$password) {
-        echo json_encode(['success' => false, 'error' => 'Password required for new user']);
-        exit;
-    }
-
-    $newId = $customId ? $customId : sprintf('%04d-%04d', rand(0, 9999), rand(0, 9999));
-    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
-
-    $ans1 = password_hash($secure_answer, PASSWORD_DEFAULT);
-    $ans2 = password_hash($secure_answer2, PASSWORD_DEFAULT);
-    $ans3 = password_hash($secure_answer3, PASSWORD_DEFAULT);
-
-    $sql = "INSERT INTO users (
-                id, firstName, lastName, middleInitial, extension, sex, birthdate, age,
-                purok, barangay, city, province, zipCode, country,
-                username, email, password, role,
-                secure_question, secure_answer, secure_question2, secure_answer2, secure_question3, secure_answer3
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
-
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param(
-        'sssssssissssssssssssssss',
-        $newId, $firstName, $lastName, $middleInitial, $extension, $sex, $birthdate, $age,
-        $purok, $barangay, $city, $province, $zipCode, $country,
-        $username, $email, $hashedPassword, $role,
-        $secure_question, $ans1, $secure_question2, $ans2, $secure_question3, $ans3
-    );
-}
-
-if ($stmt->execute()) {
-    echo json_encode(['success' => true]);
-}
-else {
-    echo json_encode(['success' => false, 'error' => 'Database error: ' . $conn->error]);
-}
-$stmt->close();
 $conn->close();
 ?>

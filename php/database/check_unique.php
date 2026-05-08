@@ -7,6 +7,7 @@ header('Content-Type: application/json');
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $field = $_POST['field'] ?? '';
     $value = $_POST['value'] ?? '';
+    $exclude_id = $_POST['exclude_id'] ?? '';
 
     // A whitelist of fields we are allowed to check
     // This is a crucial security step!
@@ -25,7 +26,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     }
 
     // $field is now safe to be used in the SQL string
-    $sql = "SELECT 1 FROM users WHERE $field = ? LIMIT 1";
+    $sql = "SELECT 1 FROM users WHERE $field = ?";
+    if ($exclude_id) {
+        $sql .= " AND id != ?";
+    }
+    $sql .= " LIMIT 1";
+
     $stmt = $conn->prepare($sql);
     
     if (!$stmt) {
@@ -33,7 +39,12 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         exit;
     }
 
-    $stmt->bind_param('s', $value);
+    if ($exclude_id) {
+        $stmt->bind_param('ss', $value, $exclude_id);
+    } else {
+        $stmt->bind_param('s', $value);
+    }
+
     $stmt->execute();
     $stmt->store_result(); // Important for checking num_rows
 

@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 
     // Query to fetch username and secure_question by ID
-    $query = "SELECT username, secure_question FROM users WHERE id = ?";
+    $query = "SELECT username, secure_question, status FROM users WHERE id = ?";
 
     if ($stmt = $conn->prepare($query)) {
         $stmt->bind_param("s", $id);
@@ -34,8 +34,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->store_result();
 
         if ($stmt->num_rows > 0) {
-            $stmt->bind_result($username, $secure_question);
+            $stmt->bind_result($username, $secure_question, $status);
             $stmt->fetch();
+
+            if ($status === 'pending') {
+                echo json_encode(['exists' => false, 'error' => 'Your account is still pending approval. You cannot reset your password yet.']);
+                $stmt->close();
+                exit;
+            } elseif ($status === 'rejected') {
+                echo json_encode(['exists' => false, 'error' => 'Your registration request was rejected. Please contact support.']);
+                $stmt->close();
+                exit;
+            }
 
             // SAVE ID TO SESSION (Crucial Step)
             $_SESSION['reset_user_id'] = $id;
