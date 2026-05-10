@@ -37,20 +37,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    function showModal(failedAttempts, lockoutTime) {
+    function showModal(failedAttempts, lockoutTime, remainingLockout = 0) {
         localStorage.setItem('failedAttempts', failedAttempts);
         toggleForgotPwLink(failedAttempts);
 
-        if (lockoutTime > Date.now() / 1000) {
-            const remainingTime = lockoutTime - Math.floor(Date.now() / 1000);
+        // If we have a remaining duration from the server, use it to set a local lockout time
+        // This fixes the issue where server and client clocks are out of sync
+        let localLockoutTime = lockoutTime;
+        if (remainingLockout > 0) {
+            localLockoutTime = Math.floor(Date.now() / 1000) + remainingLockout;
+        }
+
+        if (localLockoutTime > Date.now() / 1000) {
+            let remainingTime = localLockoutTime - Math.floor(Date.now() / 1000);
+            
+            // Safety cap: If timer is absurdly long (e.g. > 1 hour), reset it.
+            // Max lockout is 60s, so anything > 60s is suspect, but we'll be generous.
+            if (remainingTime > 3600) {
+                localStorage.removeItem('lockoutTime');
+                return;
+            }
+
             countdownElement.textContent = remainingTime;
             modal.style.display = 'flex';
             disableFormAndRegister();
             window.addEventListener('pointermove', disableBackButton);
-            localStorage.setItem('lockoutTime', lockoutTime);
+            localStorage.setItem('lockoutTime', localLockoutTime);
 
             const interval = setInterval(() => {
-                const newTime = lockoutTime - Math.floor(Date.now() / 1000);
+                const newTime = localLockoutTime - Math.floor(Date.now() / 1000);
                 countdownElement.textContent = newTime;
                 if (newTime <= 0) {
                     clearInterval(interval);
@@ -164,17 +179,17 @@ document.addEventListener('DOMContentLoaded', () => {
         if (data.requireUsername) {
             usernameValidationMessage.style.display = 'block';
             usernameValidationMessage.innerText = data.requireUsername;
-            showModal(data.failed_attempts, data.lockout_time);
+            showModal(data.failed_attempts, data.lockout_time, data.remaining_lockout);
         }
         if (data.requirePw) {
             passwordValidationMessage.style.display = 'block';
             passwordValidationMessage.innerText = data.requirePw;
-            showModal(data.failed_attempts, data.lockout_time);
+            showModal(data.failed_attempts, data.lockout_time, data.remaining_lockout);
         }
         if (data.error) {
             passwordValidationMessage.style.display = 'block';
             passwordValidationMessage.innerText = data.error;
-            showModal(data.failed_attempts, data.lockout_time);
+            showModal(data.failed_attempts, data.lockout_time, data.remaining_lockout);
         }
         if (data.redirect) {
             localStorage.clear();

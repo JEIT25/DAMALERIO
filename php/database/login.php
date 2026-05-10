@@ -40,7 +40,11 @@ function handleFailedLogin($isUsernameEmpty, $isPwEmpty, &$response, $usernameOr
         $response['error'] = "Password did not match, try again.";
     }
 
-    $response['lockout_time'] = $_SESSION['lockout_time'];
+    // Send remaining lockout seconds instead of absolute timestamp to avoid client-server time sync issues
+    $currentTime = time();
+    $lockoutTime = $_SESSION['lockout_time'] ?? 0;
+    $response['remaining_lockout'] = ($lockoutTime > $currentTime) ? ($lockoutTime - $currentTime) : 0;
+    $response['lockout_time'] = $lockoutTime; // Keep for legacy if needed
 }
 
 
@@ -59,12 +63,20 @@ if ($isFormSubmission) {
         $_SESSION['lockout_time'] = 0;
     }
 
+    // Safety check: If lockout time is more than 1 hour in the future, reset it.
+    // This handles cases where the system clock was moved backwards significantly.
+    if ($_SESSION['lockout_time'] > time() + 3600) {
+        $_SESSION['lockout_time'] = 0;
+        $_SESSION['failed_attempts'] = 0;
+    }
+
     $response = [
         'error' => '',
         'requirePw' => '',
         'requireUsername' => '',
         'failed_attempts' => $_SESSION['failed_attempts'],
-        'lockout_time' => $_SESSION['lockout_time']
+        'lockout_time' => $_SESSION['lockout_time'],
+        'remaining_lockout' => ($_SESSION['lockout_time'] > time()) ? ($_SESSION['lockout_time'] - time()) : 0
     ];
 
     $usernameOrEmail = isset($_POST['username']) ? trim((string)$_POST['username']) : '';
