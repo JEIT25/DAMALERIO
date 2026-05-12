@@ -71,7 +71,7 @@ $icon = $roleIcon[$userRole] ?? 'fa-user';
             <a href="<?php echo $baseUrl; ?>/php/superadmin/index.php" class="<?php echo isActive('superadmin_dashboard', $currentPage); ?>"><i class="fa-solid fa-chart-line"></i> Dashboard</a>
             <a href="<?php echo $baseUrl; ?>/php/superadmin/users.php" class="<?php echo isActive('superadmin_users', $currentPage); ?>"><i class="fa-solid fa-users"></i> Users & Roles</a>
             <a href="<?php echo $baseUrl; ?>/php/superadmin/requests.php" class="<?php echo isActive('superadmin_requests', $currentPage); ?>"><i class="fa-solid fa-user-shield"></i> Requests</a>
-            <a href="<?php echo $baseUrl; ?>/php/superadmin/logs.php" class="<?php echo isActive('superadmin_logs', $currentPage); ?>"><i class="fa-solid fa-list"></i> Login Logs</a>
+            <a href="<?php echo $baseUrl; ?>/php/superadmin/logs.php" class="<?php echo isActive('superadmin_logs', $currentPage); ?>"><i class="fa-solid fa-list"></i>Logs</a>
 
 
             <div style="border-top: 1px solid rgba(0,0,0,0.05); margin: 0.5rem 0; padding-top: 0.5rem;">

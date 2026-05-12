@@ -40,7 +40,7 @@ try {
     $stmt->close();
 
     // Update user status
-    $user_status = ($action === 'approve') ? 'active' : 'rejected';
+    $user_status = ($action === 'approve') ? 'registered' : 'rejected';
     $stmt2 = $conn->prepare("UPDATE users SET status = ? WHERE id = ?");
     $stmt2->bind_param('ss', $user_status, $target_id);
     $stmt2->execute();

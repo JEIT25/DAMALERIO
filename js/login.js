@@ -50,7 +50,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (localLockoutTime > Date.now() / 1000) {
             let remainingTime = localLockoutTime - Math.floor(Date.now() / 1000);
-            
+
             // Safety cap: If timer is absurdly long (e.g. > 1 hour), reset it.
             // Max lockout is 60s, so anything > 60s is suspect, but we'll be generous.
             if (remainingTime > 3600) {

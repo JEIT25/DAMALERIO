@@ -73,7 +73,7 @@ try {
 
         $sql = "UPDATE users SET id=?, firstName=?, lastName=?, middleInitial=?, extension=?, sex=?, birthdate=?, age=?,
                 purok=?, barangay=?, city=?, province=?, zipCode=?, country=?,
-                username=?, email=?, role=?, status='active'";
+                username=?, email=?, role=?, status='registered'";
 
         if ($password) {
             $sql .= ", password=?";
@@ -119,7 +119,7 @@ try {
                     purok, barangay, city, province, zipCode, country,
                     username, email, password, role, status,
                     secure_question, secure_answer, secure_question2, secure_answer2, secure_question3, secure_answer3
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'registered', ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(
