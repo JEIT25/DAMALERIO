@@ -73,7 +73,7 @@ try {
 
         $sql = "UPDATE users SET id=?, firstName=?, lastName=?, middleInitial=?, extension=?, sex=?, birthdate=?, age=?,
                 purok=?, barangay=?, city=?, province=?, zipCode=?, country=?,
-                username=?, email=?, role=?, status='registered'";
+                username=?, email=?, role=?, status='active'";
 
         if ($password) {
             $sql .= ", password=?";
@@ -119,7 +119,7 @@ try {
                     purok, barangay, city, province, zipCode, country,
                     username, email, password, role, status,
                     secure_question, secure_answer, secure_question2, secure_answer2, secure_question3, secure_answer3
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'registered', ?, ?, ?, ?, ?, ?)";
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active', ?, ?, ?, ?, ?, ?)";
 
         $stmt = $conn->prepare($sql);
         $stmt->bind_param(
@@ -132,7 +132,20 @@ try {
     }
 
     if ($stmt->execute()) {
-        echo json_encode(['success' => true]);
+        $superadminSwap = false;
+        
+        // Single Superadmin logic for both new creations and edits
+        if ($role === 'superadmin' && $id !== $_SESSION['user']['id']) {
+            // Self-block the creator for account swap
+            $creatorId = $_SESSION['user']['id'];
+            $blockStmt = $conn->prepare("UPDATE users SET is_blocked = 1 WHERE id = ?");
+            $blockStmt->bind_param('s', $creatorId);
+            $blockStmt->execute();
+            $blockStmt->close();
+            $superadminSwap = true;
+        }
+        
+        echo json_encode(['success' => true, 'superadmin_swap' => $superadminSwap]);
     } else {
         echo json_encode(['success' => false, 'error' => 'Database error: ' . $stmt->error]);
     }

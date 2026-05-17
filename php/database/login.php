@@ -141,8 +141,12 @@ if ($isFormSubmission) {
 
                 $base = 'http://' . ($_SERVER['HTTP_HOST'] ?? 'localhost') . '/DAMALERIO';
 
+                // Check for missing security questions (First Login Setup)
+                if (empty($user['secure_question'])) {
+                    $response['redirect'] = $base . '/php/forms/security_setup.php';
+                }
                 // Role-based redirection
-                if ($user['role'] === 'admin') {
+                elseif ($user['role'] === 'admin') {
                     $response['redirect'] = $base . '/php/admin/index.php';
                 }
                 elseif ($user['role'] === 'superadmin') {

@@ -144,8 +144,8 @@ $pageTitle = 'Requests';
 
                             if (r.status === 'pending') {
                                 html += `<div style="display:flex; gap:0.5rem;">
-                                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background-color: var(--primary-color); border-color: var(--primary-color);" onclick="handleRequest(${r.id}, 'approve')">Approve</button>
-                                    <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="handleRequest(${r.id}, 'reject')">Reject</button>
+                                    <button class="btn-primary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem; background-color: var(--primary-color); border-color: var(--primary-color);" onclick="handleRequest(${r.id}, 'approve', '${(r.t_role || 'consumer')}', '${r.request_type}')">Approve</button>
+                                    <button class="btn-secondary" style="padding: 0.4rem 0.8rem; font-size: 0.75rem;" onclick="handleRequest(${r.id}, 'reject', '${(r.t_role || 'consumer')}', '${r.request_type}')">Reject</button>
                                 </div>`;
                             } else {
                                 html += `<span class="text-muted" style="font-size: 0.8rem; font-style: italic;">Processed</span>`;
@@ -174,15 +174,29 @@ $pageTitle = 'Requests';
                 });
         }
 
-        function handleRequest(id, action) {
-            if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+        function handleRequest(id, action, targetRole = 'consumer', requestType = '') {
+            if (action === 'approve' && requestType === 'unblock' && targetRole === 'superadmin') {
+                if (!confirm("CRITICAL: Approving an unblock request for a Superadmin will automatically BLOCK your current account and log you out, as the system only allows one active Superadmin. Do you wish to proceed?")) {
+                    return;
+                }
+            } else {
+                if (!confirm(`Are you sure you want to ${action} this request?`)) return;
+            }
+            
             const fd = new FormData();
             fd.append('request_id', id);
             fd.append('action', action);
             fetch(api + '/superadmin_request_action.php', { method: 'POST', body: fd })
                 .then(r => r.json())
                 .then(d => {
-                    if (d.success) loadRequests(currentPage);
+                    if (d.success) {
+                        if (d.superadmin_swap) {
+                            alert("SECURITY ACTION: You have approved the unblocking of another Superadmin. You will now be logged out. Please log in with the other Superadmin's credentials.");
+                            window.location.href = '../auth/logout.php';
+                            return;
+                        }
+                        loadRequests(currentPage);
+                    }
                     else alert(d.error);
                 });
         }

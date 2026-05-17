@@ -129,17 +129,33 @@ endif; ?>>
                 <button type="button" id="forgotStep1Btn" class="submitBtn">Verify & Continue</button>
             </div>
             <div id="forgotStep2" class="forgot-step" style="display: none;">
-                <div class="user-details-box" style="background: rgba(255, 200, 87, 0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px; font-size: 0.9em; text-align: left;">
-                    <p style="margin: 4px 0;"><strong>ID:</strong> <span id="step2_display_id"></span></p>
-                    <p style="margin: 4px 0;"><strong>Name:</strong> <span id="step2_display_name"></span></p>
-                    <p style="margin: 4px 0;"><strong>Email:</strong> <span id="step2_display_email"></span></p>
+                <div class="fp-user-info-header" style="background: #f8fafc; padding: 1.25rem; border-radius: 15px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display:none;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="fp-id-row" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 4px;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.025em;">Account ID:</span>
+                            <span class="fp-val-id" style="font-family: 'Monaco', 'Consolas', monospace; font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 1rem;"></span>
+                        </div>
+                        <div class="fp-extra-info" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Username:</span>
+                            <span class="fp-val-username" style="font-weight: 600; color: #334155;"></span>
+                        </div>
+                        <div class="fp-extra-info" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Email Address:</span>
+                            <span class="fp-val-email" style="font-weight: 600; color: #334155;"></span>
+                        </div>
+                    </div>
                 </div>
                 <p class="forgot-email-hint">We will send a 6-digit code to the email above.</p>
                 <button type="button" id="forgotSendOtpBtn" class="submitBtn">Send OTP</button>
                 <span id="forgotOtpSentTo" class="forgot-email-sent" style="display: none;"></span>
                 <div id="forgotOtpInputWrap" style="display: none;">
                     <label for="forgot_otp">Enter 6-digit code:</label>
-                    <input type="password" id="forgot_otp" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="000000">
+                    <div class="password-container">
+                        <input type="password" id="forgot_otp" maxlength="6" pattern="[0-9]*" inputmode="numeric" placeholder="000000" style="padding-right: 45px;">
+                        <svg id="toggleForgotOtp" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="cursor:pointer;" onclick="toggleForgotOtpVisibility()">
+                            <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z"/><circle cx="12" cy="12" r="3"/>
+                        </svg>
+                    </div>
                     <span id="forgotResendHint" class="forgot-resend-hint"></span>
                     <button type="button" id="forgotResendOtpBtn" class="btn-secondary" disabled>Resend OTP (60s)</button>
                     <button type="button" id="forgotVerifyOtpBtn" class="submitBtn">Verify OTP</button>
@@ -147,14 +163,35 @@ endif; ?>>
                 <span id="forgotStep2Msg" class="forgot-msg"></span>
             </div>
             <div id="forgotStep3" class="forgot-step" style="display: none;">
-                <div class="user-details-box" style="background: rgba(255, 200, 87, 0.15); padding: 12px; border-radius: 8px; margin-bottom: 12px;">
-                    <p style="margin: 0;"><strong>User ID:</strong> <span id="display_id"></span> &nbsp; <strong>Username:</strong> <span id="display_username"></span></p>
+                <div class="fp-user-info-header" style="background: #f8fafc; padding: 1.25rem; border-radius: 15px; margin-bottom: 1.5rem; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); display:none;">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div class="fp-id-row" style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px dashed #e2e8f0; margin-bottom: 4px;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b; text-transform: uppercase; letter-spacing: 0.025em;">Account ID:</span>
+                            <span class="fp-val-id" style="font-family: 'Monaco', 'Consolas', monospace; font-weight: 800; color: #1e293b; background: #f1f5f9; padding: 4px 10px; border-radius: 6px; font-size: 1rem;"></span>
+                        </div>
+                        <div class="fp-extra-info" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Username:</span>
+                            <span class="fp-val-username" style="font-weight: 600; color: #334155;"></span>
+                        </div>
+                        <div class="fp-extra-info" style="display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 0.85rem; font-weight: 700; color: #64748b;">Email Address:</span>
+                            <span class="fp-val-email" style="font-weight: 600; color: #334155;"></span>
+                        </div>
+                    </div>
                 </div>
                 <div class="form-group" style="text-align: left;">
-                    <label id="secure_question_label1" for="secure_answer1" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <label>Security Question 1</label>
+                    <select id="forgotQ1" class="form-control" style="margin-bottom: 10px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Choose a Question --</option>
+                        <option value="Who is your bestfriend in elementary?">Who is your bestfriend in elementary?</option>
+                        <option value="What is the name of your pet?">What is the name of your pet?</option>
+                        <option value="Who is your favorite teacher in highschool?">Who is your favorite teacher in highschool?</option>
+                        <option value="What was your first car?">What was your first car?</option>
+                        <option value="In what city were you born?">In what city were you born?</option>
+                    </select>
                     <div class="password-container">
                         <input type="password" id="secure_answer1" name="secure_answer1" placeholder="Your Answer" style="margin-bottom: 0;">
-                        <svg id="toggleSecureAnswer1" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <svg id="toggleForgotAns1" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="cursor:pointer;">
                             <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
                             <circle cx="12" cy="12" r="3" />
                         </svg>
@@ -162,10 +199,18 @@ endif; ?>>
                 </div>
 
                 <div class="form-group" style="text-align: left;">
-                    <label id="secure_question_label2" for="secure_answer2" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <label>Security Question 2</label>
+                    <select id="forgotQ2" class="form-control" style="margin-bottom: 10px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Choose a Question --</option>
+                        <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
+                        <option value="What elementary school did you attend?">What elementary school did you attend?</option>
+                        <option value="What is your favorite food?">What is your favorite food?</option>
+                        <option value="What was your childhood nickname?">What was your childhood nickname?</option>
+                        <option value="What is the name of your best friend?">What is the name of your best friend?</option>
+                    </select>
                     <div class="password-container">
                         <input type="password" id="secure_answer2" name="secure_answer2" placeholder="Your Answer" style="margin-bottom: 0;">
-                        <svg id="toggleSecureAnswer2" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <svg id="toggleForgotAns2" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="cursor:pointer;">
                             <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
                             <circle cx="12" cy="12" r="3" />
                         </svg>
@@ -173,10 +218,18 @@ endif; ?>>
                 </div>
 
                 <div class="form-group" style="text-align: left;">
-                    <label id="secure_question_label3" for="secure_answer3" style="display:block; margin-bottom:4px; font-weight:600; font-size: 0.9em;"></label>
+                    <label>Security Question 3</label>
+                    <select id="forgotQ3" class="form-control" style="margin-bottom: 10px; width: 100%; padding: 10px; border-radius: 8px; border: 1px solid #cbd5e1;">
+                        <option value="">-- Choose a Question --</option>
+                        <option value="What is your father's middle name?">What is your father's middle name?</option>
+                        <option value="What street did you grow up on?">What street did you grow up on?</option>
+                        <option value="What is your favorite movie?">What is your favorite movie?</option>
+                        <option value="What is the name of your first pet?">What is the name of your first pet?</option>
+                        <option value="What year did you graduate high school?">What year did you graduate high school?</option>
+                    </select>
                     <div class="password-container">
                         <input type="password" id="secure_answer3" name="secure_answer3" placeholder="Your Answer" style="margin-bottom: 0;">
-                        <svg id="toggleSecureAnswer3" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24">
+                        <svg id="toggleForgotAns3" class="eye-icon" xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" viewBox="0 0 24 24" style="cursor:pointer;">
                             <path d="M1 12s4.5-8 11-8 11 8 11 8-4.5 8-11 8S1 12 1 12z" />
                             <circle cx="12" cy="12" r="3" />
                         </svg>
@@ -232,6 +285,15 @@ endif; ?>>
         window.LOGIN_API = '<?php echo $baseUrl; ?>/php/database/login.php';
         window.CHECK_ID_API = '<?php echo $baseUrl; ?>/php/database/check_id.php';
         window.FORGOT_PASSWORD_API = '<?php echo $baseUrl; ?>/php/database/forgot_password.php';
+
+        function toggleForgotOtpVisibility() {
+            const otpInput = document.getElementById('forgot_otp');
+            if (otpInput.type === 'password') {
+                otpInput.type = 'text';
+            } else {
+                otpInput.type = 'password';
+            }
+        }
     </script>
     <script src="../../js/serve_asset.php?file=login.js&v=<?php echo time(); ?>"></script>
 </body>

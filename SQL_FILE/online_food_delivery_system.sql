@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: May 12, 2026 at 04:41 AM
+-- Generation Time: May 17, 2026 at 04:56 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -204,7 +204,12 @@ INSERT INTO `login_logs` (`id`, `user_id`, `action`, `log_time`) VALUES
 (135, '0000-0002', 'login', '2026-05-11 22:50:32'),
 (136, '0000-0002', 'logout', '2026-05-11 22:56:18'),
 (137, '0000-0002', 'login', '2026-05-12 09:34:30'),
-(138, '0000-0002', 'logout', '2026-05-12 09:34:44');
+(138, '0000-0002', 'logout', '2026-05-12 09:34:44'),
+(139, '0000-0001', 'login', '2026-05-17 10:52:06'),
+(140, '0000-0001', 'logout', '2026-05-17 10:52:59'),
+(143, '0000-0001', 'login', '2026-05-17 10:53:47'),
+(144, '0000-0001', 'logout', '2026-05-17 10:55:40'),
+(147, '0000-0001', 'login', '2026-05-17 10:56:02');
 
 -- --------------------------------------------------------
 
@@ -553,7 +558,7 @@ ALTER TABLE `cart_items`
 -- AUTO_INCREMENT for table `login_logs`
 --
 ALTER TABLE `login_logs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=139;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
 
 --
 -- AUTO_INCREMENT for table `menu_items`

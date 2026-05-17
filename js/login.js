@@ -285,15 +285,24 @@ document.addEventListener('DOMContentLoaded', () => {
         confirmPwInput.type = confirmPwInput.type === 'password' ? 'text' : 'password';
     };
 
-    if (toggleSA1) toggleSA1.onclick = function () {
-        secureAnswer1.type = secureAnswer1.type === 'password' ? 'text' : 'password';
-    };
-    if (toggleSA2) toggleSA2.onclick = function () {
-        secureAnswer2.type = secureAnswer2.type === 'password' ? 'text' : 'password';
-    };
-    if (toggleSA3) toggleSA3.onclick = function () {
-        secureAnswer3.type = secureAnswer3.type === 'password' ? 'text' : 'password';
-    };
+    const toggleForgotOtp = document.getElementById('toggleForgotOtp');
+    if (toggleForgotOtp) {
+        toggleForgotOtp.onclick = function() {
+            const otpInp = document.getElementById('forgot_otp');
+            otpInp.type = otpInp.type === 'password' ? 'text' : 'password';
+        };
+    }
+
+    // Security answer show/hide toggles (Step 3)
+    [['toggleForgotAns1','secure_answer1'],['toggleForgotAns2','secure_answer2'],['toggleForgotAns3','secure_answer3']].forEach(function(pair) {
+        var btn = document.getElementById(pair[0]);
+        var inp = document.getElementById(pair[1]);
+        if (btn && inp) {
+            btn.onclick = function () {
+                inp.type = inp.type === 'password' ? 'text' : 'password';
+            };
+        }
+    });
 
     if (window.FORGOT_PASSWORD_API && document.getElementById("forgotStep1")) {
         var step1 = document.getElementById("forgotStep1");
@@ -319,10 +328,27 @@ document.addEventListener('DOMContentLoaded', () => {
         function showStep(n) {
             [step1, step2, step3, step4].forEach(function (s) { if (s) s.style.display = "none"; });
             step1Msg.textContent = ""; step2Msg.textContent = ""; step3Msg.textContent = ""; step4Msg.textContent = "";
-            var titles = ["Step 1: Verify your User ID", "Step 2: Get and enter OTP", "Step 3: Answer Security Questions", "Step 4: Set new password"];
+            var titles = ["Step 1: Verify your User ID", "Step 2: Account Confirmation", "Step 3: Answer Security Questions", "Step 4: Set new password"];
             if (stepTitle) stepTitle.textContent = titles[n - 1] || "";
             var el = [step1, step2, step3, step4][n - 1];
             if (el) el.style.display = "block";
+
+            // Header visibility logic
+            const headers = document.querySelectorAll('.fp-user-info-header');
+            if (n > 1) {
+                headers.forEach(h => {
+                    h.style.display = 'block';
+                    const extras = h.querySelectorAll('.fp-extra-info');
+                    // Show username and email in all steps for clarity
+                    extras.forEach(ex => ex.style.display = 'flex');
+
+                    // Show ID row ONLY in Account Confirmation (Step 2)
+                    const idRows = h.querySelectorAll('.fp-id-row');
+                    idRows.forEach(row => row.style.display = (n === 2) ? 'flex' : 'none');
+                });
+            } else {
+                headers.forEach(h => h.style.display = 'none');
+            }
         }
 
         function clearResendTimer() {
@@ -394,17 +420,16 @@ document.addEventListener('DOMContentLoaded', () => {
             fetch(window.FORGOT_PASSWORD_API, { method: "POST", body: fd })
                 .then(function (r) { return r.json(); })
                 .then(function (data) {
-                    if (data.status === "success") {
-                        if (displayIdSpan) displayIdSpan.textContent = data.user_id;
-                        if (displayUsernameSpan) displayUsernameSpan.textContent = data.username || "";
+                    if (data.status === "success" || data.success === true) {
+                        const user = data.user || data;
+                        const userId = user.id || data.user_id;
+                        const username = user.username || "";
+                        const email = user.email || "";
 
-                        // Update Step 2 info
-                        var s2Id = document.getElementById('step2_display_id');
-                        var s2Name = document.getElementById('step2_display_name');
-                        var s2Email = document.getElementById('step2_display_email');
-                        if (s2Id) s2Id.textContent = data.user_id;
-                        if (s2Name) s2Name.textContent = data.fullname || "";
-                        if (s2Email) s2Email.textContent = data.email || "";
+                        // Populate persistent headers with labeled layout
+                        document.querySelectorAll('.fp-val-id').forEach(el => el.textContent = userId);
+                        document.querySelectorAll('.fp-val-username').forEach(el => el.textContent = '@' + username);
+                        document.querySelectorAll('.fp-val-email').forEach(el => el.textContent = email);
 
                         showStep(2);
                     } else {
@@ -513,23 +538,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 .then(function (data) {
                     if (data.status === "success") {
                         clearResendTimer();
-                        // Call get_security_question BEFORE showing step 3
-                        var fd2 = new FormData(); fd2.append("action", "get_security_question");
-                        fetch(window.FORGOT_PASSWORD_API, { method: "POST", body: fd2 })
-                            .then(function (r2) { return r2.json(); })
-                            .then(function (d2) {
-                                if (d2.status === "success") {
-                                    showStep(3);
-                                    function cleanQ(q) { return (q || "").replace(/^\d+\.\s*/, "").replace(/^\d+\s+/, ""); }
-                                    if (secureQuestionLabel1) secureQuestionLabel1.textContent = "1. " + cleanQ(d2.question1 || "Question 1");
-                                    if (secureQuestionLabel2) secureQuestionLabel2.textContent = "2. " + cleanQ(d2.question2 || "Question 2");
-                                    if (secureQuestionLabel3) secureQuestionLabel3.textContent = "3. " + cleanQ(d2.question3 || "Question 3");
-                                } else {
-                                    step2Msg.textContent = d2.message || "Could not retrieve security questions.";
-                                    step2Msg.style.color = "#c00";
-                                }
-                            })
-                            .catch(function () { step2Msg.textContent = "Error fetching questions."; step2Msg.style.color = "#c00"; });
+                        showStep(3);
                     } else {
                         step2Msg.textContent = data.message || "Invalid or expired OTP.";
                         step2Msg.style.color = "#c00";
@@ -539,21 +548,27 @@ document.addEventListener('DOMContentLoaded', () => {
         };
 
         if (step3Btn) step3Btn.onclick = function () {
+            var q1 = document.getElementById("forgotQ1").value;
             var a1 = (secureAnswer1 && secureAnswer1.value || "").trim();
+            var q2 = document.getElementById("forgotQ2").value;
             var a2 = (secureAnswer2 && secureAnswer2.value || "").trim();
+            var q3 = document.getElementById("forgotQ3").value;
             var a3 = (secureAnswer3 && secureAnswer3.value || "").trim();
             step3Msg.textContent = "";
 
-            if (!a1 || !a2 || !a3) {
-                step3Msg.textContent = "Please answer all 3 questions.";
+            if (!q1 || !a1 || !q2 || !a2 || !q3 || !a3) {
+                step3Msg.textContent = "Please select and answer all 3 questions.";
                 step3Msg.style.color = "#c00";
                 return;
             }
 
             var fd = new FormData();
             fd.append("action", "verify_security_question");
+            fd.append("question1", q1);
             fd.append("answer1", a1);
+            fd.append("question2", q2);
             fd.append("answer2", a2);
+            fd.append("question3", q3);
             fd.append("answer3", a3);
 
             fetch(window.FORGOT_PASSWORD_API, { method: "POST", body: fd })

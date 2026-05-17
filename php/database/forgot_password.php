@@ -190,16 +190,26 @@ if ($action === 'verify_security_question') {
         exit;
     }
     $userId = $_SESSION['forgot_password_user_id'];
-    $answer1 = trim($_POST['answer1'] ?? '');
-    $answer2 = trim($_POST['answer2'] ?? '');
-    $answer3 = trim($_POST['answer3'] ?? '');
 
-    if (empty($answer1) || empty($answer2) || empty($answer3)) {
-        echo json_encode(['status' => 'error', 'message' => 'All answers are required.']);
+    // The user's selected questions and typed answers
+    $q1 = trim($_POST['question1'] ?? '');
+    $a1 = trim($_POST['answer1'] ?? '');
+    $q2 = trim($_POST['question2'] ?? '');
+    $a2 = trim($_POST['answer2'] ?? '');
+    $q3 = trim($_POST['question3'] ?? '');
+    $a3 = trim($_POST['answer3'] ?? '');
+
+    if (empty($q1) || empty($a1) || empty($q2) || empty($a2) || empty($q3) || empty($a3)) {
+        echo json_encode(['status' => 'error', 'message' => 'All questions and answers are required.']);
         exit;
     }
 
-    $stmt = $conn->prepare("SELECT secure_answer, secure_answer2, secure_answer3 FROM users WHERE id = ?");
+    $a1 = strtolower($a1);
+    $a2 = strtolower($a2);
+    $a3 = strtolower($a3);
+
+    // Pull the hashed answers and saved questions from the database
+    $stmt = $conn->prepare("SELECT secure_question, secure_answer, secure_question2, secure_answer2, secure_question3, secure_answer3 FROM users WHERE id = ?");
     $stmt->bind_param('s', $userId);
     $stmt->execute();
     $result = $stmt->get_result();
@@ -208,19 +218,19 @@ if ($action === 'verify_security_question') {
         $row = $result->fetch_assoc();
         $correctCount = 0;
 
-        if (password_verify($answer1, $row['secure_answer']))
+        if ($q1 === $row['secure_question'] && password_verify($a1, $row['secure_answer'] ?? ''))
             $correctCount++;
-        if (password_verify($answer2, $row['secure_answer2']))
+        if ($q2 === $row['secure_question2'] && password_verify($a2, $row['secure_answer2'] ?? ''))
             $correctCount++;
-        if (password_verify($answer3, $row['secure_answer3']))
+        if ($q3 === $row['secure_question3'] && password_verify($a3, $row['secure_answer3'] ?? ''))
             $correctCount++;
 
-        if ($correctCount >= 2) {
+        if ($correctCount === 3) {
             $_SESSION['forgot_password_security_verified'] = true;
             echo json_encode(['status' => 'success', 'message' => 'Identity verified. Set new password.']);
         }
         else {
-            echo json_encode(['status' => 'error', 'message' => "Verification failed. You got $correctCount/3 correct. Need at least 2."]);
+            echo json_encode(['status' => 'error', 'message' => "Security validation failed. Questions or answers do not match our records."]);
         }
     }
     else {

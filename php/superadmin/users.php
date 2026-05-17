@@ -242,10 +242,6 @@ $pageTitle = 'User Management';
                     <div class="step-circle">3</div>
                     <span class="step-label">Account</span>
                 </div>
-                <div class="step-item" id="stepIndicator3">
-                    <div class="step-circle">4</div>
-                    <span class="step-label">Security</span>
-                </div>
             </div>
 
             <form id="userForm" novalidate style="width: 100%; text-align: left; max-height: 65vh; overflow-y: auto; padding: 0.5rem 1rem 0.5rem 0;">
@@ -385,76 +381,6 @@ $pageTitle = 'User Management';
                                 <span class="validation-message" id="repasswordError"></span>
                             </div>
                         </div>
-                    </fieldset>
-                </div>
-
-                <!-- STEP 4: Security -->
-                <div class="form-step" id="step3" style="display:none;">
-                    <fieldset id="securitySection">
-                        <legend>Security Setup</legend>
-                        <div class="form-grid">
-                            <div class="form-group">
-                                <label>Security Question 1 <span class="hint">(Optional)</span></label>
-                                <select name="secure_question" id="sq1" class="input-field">
-                                    <option value="">-- Select Question --</option>
-                                    <option value="Who is your bestfriend in elementary?">Who is your bestfriend in elementary?</option>
-                                    <option value="What is the name of your pet?">What is the name of your pet?</option>
-                                    <option value="Who is your favorite teacher in highschool?">Who is your favorite teacher in highschool?</option>
-                                    <option value="What was your first car?">What was your first car?</option>
-                                    <option value="In what city were you born?">In what city were you born?</option>
-                                </select>
-                                <span class="validation-message" id="sq1Error"></span>
-                            </div>
-                            <div class="form-group">
-                                <label>Answer 1 <span class="hint">(Optional)</span></label>
-                                <div class="password-container" style="position:relative;">
-                                    <input type="password" name="secure_answer" id="sa1" class="input-field">
-                                    <i class="fa-solid fa-eye eye-icon pw-toggle" onclick="togglePasswordVisibility(this)" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#94a3b8;"></i>
-                                </div>
-                                <span class="validation-message" id="sa1Error"></span>
-                            </div>
-                            <div class="form-group">
-                                <label>Security Question 2 <span class="hint">(Optional)</span></label>
-                                <select name="secure_question2" id="sq2" class="input-field">
-                                    <option value="">-- Select Question --</option>
-                                    <option value="What is your mother's maiden name?">What is your mother's maiden name?</option>
-                                    <option value="What elementary school did you attend?">What elementary school did you attend?</option>
-                                    <option value="What is your favorite food?">What is your favorite food?</option>
-                                    <option value="What was your childhood nickname?">What was your childhood nickname?</option>
-                                    <option value="What is the name of your best friend?">What is the name of your best friend?</option>
-                                </select>
-                                <span class="validation-message" id="sq2Error"></span>
-                            </div>
-                            <div class="form-group">
-                                <label>Answer 2 <span class="hint">(Optional)</span></label>
-                                <div class="password-container" style="position:relative;">
-                                    <input type="password" name="secure_answer2" id="sa2" class="input-field">
-                                    <i class="fa-solid fa-eye eye-icon pw-toggle" onclick="togglePasswordVisibility(this)" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#94a3b8;"></i>
-                                </div>
-                                <span class="validation-message" id="sa2Error"></span>
-                            </div>
-                            <div class="form-group">
-                                <label>Security Question 3 <span class="hint">(Optional)</span></label>
-                                <select name="secure_question3" id="sq3" class="input-field">
-                                    <option value="">-- Select Question --</option>
-                                    <option value="What is your father's middle name?">What is your father's middle name?</option>
-                                    <option value="What street did you grow up on?">What street did you grow up on?</option>
-                                    <option value="What is your favorite movie?">What is your favorite movie?</option>
-                                    <option value="What is the name of your first pet?">What is the name of your first pet?</option>
-                                    <option value="What year did you graduate high school?">What year did you graduate high school?</option>
-                                </select>
-                                <span class="validation-message" id="sq3Error"></span>
-                            </div>
-                            <div class="form-group">
-                                <label>Answer 3 <span class="hint">(Optional)</span></label>
-                                <div class="password-container" style="position:relative;">
-                                    <input type="password" name="secure_answer3" id="sa3" class="input-field">
-                                    <i class="fa-solid fa-eye eye-icon pw-toggle" onclick="togglePasswordVisibility(this)" style="position:absolute; right:12px; top:50%; transform:translateY(-50%); cursor:pointer; color:#94a3b8;"></i>
-                                </div>
-                                <span class="validation-message" id="sa3Error"></span>
-                            </div>
-                        </div>
-                        <p class="hint" style="margin-top: 1rem; font-style: italic;">Note: If you are editing an existing user, you can leave these blank to keep the current security settings.</p>
                     </fieldset>
                 </div>
 
@@ -611,19 +537,36 @@ $pageTitle = 'User Management';
 
         function blockUser(userId, action) {
             if (!userId) return;
-            if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            
+            const targetUser = usersMap[userId];
+            if (action === 'unblock' && targetUser && targetUser.role === 'superadmin') {
+                if (!confirm("CRITICAL: Unblocking a Superadmin will automatically BLOCK your current account and log you out, as the system only allows one active Superadmin. Do you wish to proceed?")) {
+                    return;
+                }
+            } else {
+                if (!confirm(`Are you sure you want to ${action} this user?`)) return;
+            }
+
             fetch(api + '/superadmin_user_block.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: 'user_id=' + encodeURIComponent(userId) + '&action=' + encodeURIComponent(action)
             }).then(r => r.json()).then(d => {
-                if (d.success) { showResponse(true, `User ${action}ed.`); loadUsers(currentPage); }
+                if (d.success) { 
+                    if (d.superadmin_swap) {
+                        alert("SECURITY ACTION: You have successfully unblocked another Superadmin. You will now be logged out. Please log in with the other Superadmin's credentials.");
+                        window.location.href = '../auth/logout.php';
+                        return;
+                    }
+                    showResponse(true, `User ${action}ed.`); 
+                    loadUsers(currentPage); 
+                }
                 else showResponse(false, d.error || 'Action failed.');
             });
         }
 
         let currentStep = 0;
-        const totalSteps = 4;
+        const totalSteps = 3;
 
         function showStep(n) {
             document.querySelectorAll('.form-step').forEach(el => el.style.display = 'none');
@@ -644,10 +587,7 @@ $pageTitle = 'User Management';
             });
 
             document.getElementById('prevBtn').style.display = (n === 0) ? 'none' : 'inline-block';
-            const role = document.getElementById('role').value;
-            const maxStep = (role === 'consumer') ? totalSteps - 1 : totalSteps - 2;
-
-            if (n >= maxStep) {
+            if (n >= totalSteps - 1) {
                 document.getElementById('nextBtn').style.display = 'none';
                 document.getElementById('submitBtn').style.display = 'inline-block';
             } else {
@@ -706,12 +646,6 @@ $pageTitle = 'User Management';
                 roleEl.value = rVal;
                 roleEl.dispatchEvent(new Event('change'));
             }
-            
-            if (u.role === 'consumer') {
-                if (document.getElementById('sq1')) document.getElementById('sq1').value = u.secure_question || '';
-                if (document.getElementById('sq2')) document.getElementById('sq2').value = u.secure_question2 || '';
-                if (document.getElementById('sq3')) document.getElementById('sq3').value = u.secure_question3 || '';
-            }
 
             if (u.birthdate) {
                 const bd = new Date(u.birthdate), today = new Date();
@@ -736,7 +670,12 @@ $pageTitle = 'User Management';
                 if (!(await AdminUserValidation.validatePersonalInfo())) { showStep(0); return; }
                 if (!AdminUserValidation.validateAddress()) { showStep(1); return; }
                 if (!(await AdminUserValidation.validateCredentials(isEdit))) { showStep(2); return; }
-                if (role === 'consumer' && !AdminUserValidation.validateSecurityQuestions(isEdit)) { showStep(3); return; }
+
+                if (!isEdit && role === 'superadmin') {
+                    if (!confirm("CRITICAL: Creating a new Superadmin will BLOCK your current account and log you out for security reasons. The new account will become the primary Superadmin. Do you wish to proceed?")) {
+                        return;
+                    }
+                }
                 
                 const fd = new FormData(this); 
                 fd.set('id', editingUserId);
@@ -746,6 +685,11 @@ $pageTitle = 'User Management';
                 
                 if (d.success) { 
                     closeUserModal(); 
+                    if (d.superadmin_swap) {
+                        alert("Account swapped successfully. You will now be logged out. Please log in with the new Superadmin credentials.");
+                        window.location.href = '../auth/logout.php';
+                        return;
+                    }
                     showResponse(true, 'User data has been saved successfully.'); 
                     loadUsers(currentPage); 
                 } else { 
